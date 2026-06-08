@@ -125,7 +125,7 @@
       "estatus": "En proceso",
       "responsable": "Gabriel",
       "eta": "Q3 2026",
-      "figma_url": "prototipos/renta-variable/index.html",
+      "figma_url": "renta-variable.html",
       "info_clave": "Lógica max(RMG, ventas × %). Lifecycle versionado con rule_version_id + calculation_snapshot. Excedente variable como BillingRecord separado con reference_period. minimum_guaranteed es el término canónico (no fixed_and_variable)."
     },
     {
@@ -213,7 +213,7 @@
       "estatus": "Por hacer",
       "responsable": "Gabriel",
       "eta": "Q4 2026",
-      "figma_url": "prototipos/stacking-plan/index.html",
+      "figma_url": "stacking-plan.html",
       "info_clave": "Mapa espacial 2D cenital navegable (Konva.js: pan/zoom/hover/click). Tres capas: Geometría → Espacio/Activo → Contrato. Lentes: Ocupación, Salud Comercial (ventas vs RMG). Fase 3 cruza con Cobranza Variable. 3D explícitamente rechazado."
     },
     {
