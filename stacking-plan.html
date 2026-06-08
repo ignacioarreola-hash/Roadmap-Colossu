@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Stacking Plan v6 · Prototipo Colossu</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&family=DM+Serif+Display&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'DM Sans',sans-serif;background:#FAFAFB;color:#0F172A;-webkit-font-smoothing:antialiased}
+  #root{min-height:100vh}
+  .proto-bar{position:sticky;top:0;z-index:200;background:rgba(250,250,251,.85);backdrop-filter:blur(10px);border-bottom:1px solid #ECECEE;padding:10px 20px;display:flex;align-items:center;gap:12px;font-size:13px}
+  .proto-bar a{color:#115E59;font-weight:600;text-decoration:none;display:inline-flex;align-items:center;gap:6px}
+  .proto-bar a:hover{text-decoration:underline}
+  .proto-bar .sep{color:#CBD5E1}
+  .proto-bar .tt{color:#64748B;font-weight:500}
+  .proto-bar .tag{margin-left:auto;font-size:11px;font-weight:600;color:#115E59;background:#ECFDF8;padding:3px 9px;border-radius:20px}
+</style>
+</head>
+<body>
+<div class="proto-bar">
+  <a href="index.html">← Volver al roadmap</a>
+  <span class="sep">·</span>
+  <span class="tt">Stacking Plan v6</span>
+  <span class="tag">Prototipo</span>
+</div>
+<div id="root"></div>
+<script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<script type="text/babel" data-presets="react">
+const { useState, useMemo, useEffect, useRef, useCallback } = React;
+
+
+// ============================================================================
+// Stacking Plan v6 — Plaza Centauri · EL MAPA ES EL PROTAGONISTA
+//  · Una sola lente: Ocupación. Sin selector de lentes, sin línea de tiempo.
+//  · Lienzo navegable: PAN (arrastrar) + ZOOM (rueda / botones / pinch).
+//  · El usuario se desliza por el plano de sus locales bien geometrizados.
+//  · Hover resalta, clic abre el detalle. El lienzo domina la pantalla.
+// ============================================================================
+
+const C = { ink:"#0F172A", sub:"#64748B", faint:"#94A3B8", line:"#EDF0F2", teal700:"#115E59", teal500:"#14B8A6", tealBg:"#F0FDFA" };
+const fmt = (n) => "$" + Math.round(n).toLocaleString("es-MX");
+
+// Geometría más rica (formas no solo rectangulares) para que el plano se vea real.
+const LOCALES = [
+  { id:1,  n:"Cinépolis",     cat:"Entretenimiento", m2:1800, estado:"ocupado",    rmg:380000, pct:8, ventas:5200000,  inicio:"Mar 2022", venc:28, pagos:"al corriente",   g:[[60,40],[420,40],[420,300],[260,300],[260,360],[60,360]] },
+  { id:2,  n:"Soriana",       cat:"Supermercado",    m2:2400, estado:"ocupado",    rmg:420000, pct:4, ventas:13500000, inicio:"Ene 2021", venc:40, pagos:"al corriente",   g:[[980,40],[1320,40],[1320,440],[980,440]] },
+  { id:3,  n:"Zara",          cat:"Moda",            m2:620,  estado:"ocupado",    rmg:240000, pct:9, ventas:3100000,  inicio:"Jun 2023", venc:14, pagos:"al corriente",   g:[[440,40],[600,40],[600,210],[440,210]] },
+  { id:4,  n:"Bershka",       cat:"Moda",            m2:380,  estado:"ocupado",    rmg:150000, pct:9, ventas:1200000,  inicio:"Ago 2023", venc:6,  pagos:"atraso 1 mes",   g:[[620,40],[760,40],[760,210],[620,210]] },
+  { id:5,  n:"Pull & Bear",   cat:"Moda",            m2:360,  estado:"por_vencer", rmg:145000, pct:9, ventas:980000,   inicio:"Sep 2021", venc:3,  pagos:"atraso 2 meses", g:[[780,40],[920,40],[920,210],[780,210]] },
+  { id:6,  n:"Starbucks",     cat:"Cafetería",       m2:140,  estado:"ocupado",    rmg:95000,  pct:7, ventas:1650000,  inicio:"Feb 2024", venc:22, pagos:"al corriente",   g:[[440,230],[560,230],[560,360],[440,360]] },
+  { id:7,  n:"Chili's",       cat:"Restaurante",     m2:320,  estado:"ocupado",    rmg:180000, pct:6, ventas:2400000,  inicio:"Nov 2022", venc:33, pagos:"al corriente",   g:[[580,230],[760,230],[760,360],[580,360]] },
+  { id:8,  n:"Krispy Kreme",  cat:"Cafetería",       m2:90,   estado:"ocupado",    rmg:70000,  pct:8, ventas:720000,   inicio:"Oct 2023", venc:9,  pagos:"al corriente",   g:[[780,230],[920,230],[920,360],[780,360]] },
+  { id:12, n:"Local PB-12",   cat:null,              m2:105,  estado:"vacante",    rmg:0,      pct:0, ventas:0,        inicio:null,       venc:null, pagos:null,          g:[[60,400],[230,400],[230,540],[60,540]] },
+  { id:13, n:"Cuarto Frío",   cat:"Restaurante",     m2:130,  estado:"ocupado",    rmg:78000,  pct:7, ventas:690000,   inicio:"Dic 2023", venc:4,  pagos:"atraso 1 mes",   g:[[250,400],[420,400],[420,540],[250,540]] },
+  { id:11, n:"Óptica Devlyn", cat:"Salud",           m2:95,   estado:"ocupado",    rmg:62000,  pct:6, ventas:540000,   inicio:"May 2024", venc:12, pagos:"al corriente",   g:[[440,400],[600,400],[600,540],[440,540]] },
+  { id:7.5,n:"Pasillo central", cat:"_pasillo",      m2:0,    estado:"_pasillo",   rmg:0, pct:0, ventas:0, inicio:null, venc:null, pagos:null,                          g:[[620,400],[920,400],[920,540],[620,540]] },
+  { id:9,  n:"Farmacias GI",  cat:"Salud",           m2:160,  estado:"ocupado",    rmg:88000,  pct:5, ventas:1400000,  inicio:"Abr 2022", venc:18, pagos:"al corriente",   g:[[980,480],[1140,480],[1140,620],[980,620]] },
+  { id:10, n:"Telcel",        cat:"Tecnología",      m2:110,  estado:"ocupado",    rmg:92000,  pct:6, ventas:1100000,  inicio:"Jul 2023", venc:25, pagos:"al corriente",   g:[[1160,480],[1320,480],[1320,620],[1160,620]] },
+  { id:15, n:"Liverpool",     cat:"Departamental",   m2:480,  estado:"ocupado",    rmg:210000, pct:7, ventas:2900000, inicio:"Mar 2021", venc:30, pagos:"al corriente",   g:[[60,580],[420,580],[420,820],[60,820]] },
+  { id:16, n:"Innovasport",   cat:"Deportes",        m2:290,  estado:"ocupado",    rmg:130000, pct:8, ventas:1350000, inicio:"Feb 2023", venc:16, pagos:"al corriente",   g:[[440,580],[620,580],[620,760],[440,760]] },
+  { id:17, n:"Sanborns",      cat:"Departamental",   m2:350,  estado:"por_vencer", rmg:160000, pct:6, ventas:1550000, inicio:"Jun 2021", venc:2,  pagos:"atraso 3 meses", g:[[640,580],[920,580],[920,760],[640,760]] },
+  { id:14, n:"Local PB-14",   cat:null,              m2:120,  estado:"vacante",    rmg:0,      pct:0, ventas:0,        inicio:null,       venc:null, pagos:null,          g:[[640,780],[920,780],[920,900],[640,900]] },
+  { id:19, n:"Game Planet",   cat:"Tecnología",      m2:150,  estado:"ocupado",    rmg:86000,  pct:7, ventas:760000,  inicio:"Ago 2022", venc:11, pagos:"atraso 1 mes",   g:[[980,660],[1320,660],[1320,820],[980,820]] },
+];
+
+const PLAN_W = 1380, PLAN_H = 940;
+
+function calcVariable(l){
+  if(!l.rmg) return {piso:0,variable:0,excedente:0,cobro:0,ratio:null,tipo:"fija"};
+  const variable=l.ventas*(l.pct/100), cobro=Math.max(l.rmg,variable), excedente=Math.max(0,variable-l.rmg);
+  return {piso:l.rmg,variable,excedente,cobro,ratio:variable/l.rmg,tipo:"variable"};
+}
+
+// Lente única: Ocupación.
+function colorOcup(l){
+  if(l.estado==="_pasillo") return {fill:"#F8FAFC",txt:"#CBD5E1",stroke:"#EDF0F2"};
+  if(l.estado==="vacante") return {fill:"#E2E8F0",txt:"#64748B",stroke:"#CBD5E1"};
+  if(l.estado==="no_arrendable") return {fill:"#CBD5E1",txt:"#475569",stroke:"#94A3B8"};
+  if(l.venc!=null && l.venc<=3) return {fill:"#EF4444",txt:"#fff",stroke:"#DC2626"};
+  if(l.venc!=null && l.venc<=9) return {fill:"#F59E0B",txt:"#fff",stroke:"#D97706"};
+  return {fill:"#115E59",txt:"#fff",stroke:"#0F4F4A"};
+}
+
+// ---------------------------------------------------------------------------
+// Lienzo navegable. Pan (drag) + zoom (rueda, centrado en cursor) + botones.
+// ---------------------------------------------------------------------------
+function Mapa({ sel, onSel, hover, setHover }){
+  const wrapRef = useRef(null);
+  const [view, setView] = useState({ x:0, y:0, k:1 }); // pan x/y, zoom k
+  const drag = useRef(null);
+
+  // Ajustar a pantalla al montar
+  const fit = useCallback(()=>{
+    const el = wrapRef.current; if(!el) return;
+    const w = el.clientWidth, h = el.clientHeight;
+    const k = Math.min(w/PLAN_W, h/PLAN_H) * 0.92;
+    setView({ k, x:(w-PLAN_W*k)/2, y:(h-PLAN_H*k)/2 });
+  },[]);
+  useEffect(()=>{ fit(); window.addEventListener("resize",fit); return ()=>window.removeEventListener("resize",fit); },[fit]);
+
+  const onWheel = useCallback((e)=>{
+    e.preventDefault();
+    const el = wrapRef.current; const rect = el.getBoundingClientRect();
+    const mx = e.clientX-rect.left, my = e.clientY-rect.top;
+    setView((v)=>{
+      const factor = e.deltaY<0 ? 1.12 : 1/1.12;
+      const k = Math.min(4, Math.max(0.3, v.k*factor));
+      // zoom centrado en el cursor
+      const x = mx - (mx - v.x) * (k/v.k);
+      const y = my - (my - v.y) * (k/v.k);
+      return { x, y, k };
+    });
+  },[]);
+
+  const onDown = (e)=>{ drag.current = { sx:e.clientX, sy:e.clientY, ox:view.x, oy:view.y, moved:false }; };
+  const onMove = (e)=>{
+    if(!drag.current) return;
+    const dx=e.clientX-drag.current.sx, dy=e.clientY-drag.current.sy;
+    if(Math.abs(dx)>3||Math.abs(dy)>3) drag.current.moved=true;
+    setView((v)=>({ ...v, x:drag.current.ox+dx, y:drag.current.oy+dy }));
+  };
+  const onUp = ()=>{ drag.current=null; };
+
+  const zoomBtn = (dir)=> setView((v)=>{
+    const el=wrapRef.current, w=el.clientWidth, h=el.clientHeight, mx=w/2, my=h/2;
+    const k=Math.min(4,Math.max(0.3, v.k*(dir>0?1.25:0.8)));
+    return { x:mx-(mx-v.x)*(k/v.k), y:my-(my-v.y)*(k/v.k), k };
+  });
+
+  return (
+    <div style={{ position:"relative", flex:1, minWidth:0 }}>
+      <div
+        ref={wrapRef}
+        onWheel={onWheel} onMouseDown={onDown} onMouseMove={onMove} onMouseUp={onUp} onMouseLeave={onUp}
+        style={{
+          position:"relative", width:"100%", height:"72vh",
+          background:"radial-gradient(circle at 30% 20%, #FCFDFE, #F1F4F7)",
+          border:`1px solid ${C.line}`, borderRadius:18, overflow:"hidden",
+          cursor: drag.current ? "grabbing" : "grab",
+        }}
+      >
+        <svg width="100%" height="100%" style={{ display:"block", touchAction:"none" }}>
+          <defs>
+            <pattern id="dots" width="28" height="28" patternUnits="userSpaceOnUse">
+              <circle cx="1.5" cy="1.5" r="1.2" fill="#E6EBEF" />
+            </pattern>
+            <filter id="lift" x="-20%" y="-20%" width="140%" height="140%">
+              <feDropShadow dx="0" dy="6" stdDeviation="8" floodColor="#0F172A" floodOpacity="0.14" />
+            </filter>
+          </defs>
+          {/* fondo de puntos fijo (da sensación de lienzo infinito tipo Miro) */}
+          <rect width="100%" height="100%" fill="url(#dots)" />
+
+          <g transform={`translate(${view.x},${view.y}) scale(${view.k})`}>
+            {/* contorno del plano (cascarón del piso) */}
+            <rect x="20" y="0" width={PLAN_W-20} height={PLAN_H} rx="14" fill="#FFFFFF" stroke="#E2E8F0" strokeWidth="2" />
+            <text x="44" y="32" fontSize="20" fontWeight="700" fill={C.faint}>Planta Baja</text>
+
+            {LOCALES.map((l)=>{
+              const c = colorOcup(l);
+              const isSel=l.id===sel, isHover=l.id===hover, isPas=l.estado==="_pasillo";
+              const pts = l.g.map(([x,y])=>`${x},${y}`).join(" ");
+              const cx = l.g.reduce((s,p)=>s+p[0],0)/l.g.length;
+              const cy = l.g.reduce((s,p)=>s+p[1],0)/l.g.length;
+              return (
+                <g key={l.id}
+                   style={{ cursor:isPas?"grab":"pointer" }}
+                   onClick={(e)=>{ if(isPas) return; if(drag.current?.moved) return; e.stopPropagation(); onSel(l.id); }}
+                   onMouseEnter={()=>!isPas&&setHover(l.id)} onMouseLeave={()=>setHover(null)}
+                   filter={(isSel||isHover)&&!isPas?"url(#lift)":undefined}>
+                  <polygon points={pts} fill={c.fill} stroke={isSel?C.teal500:c.stroke} strokeWidth={isSel?5:isHover?3:1.5}
+                           fillOpacity={isHover?0.93:1} style={{ transition:"fill-opacity .15s, stroke-width .12s" }} />
+                  {!isPas && (
+                    <>
+                      <text x={cx} y={cy-4} textAnchor="middle" fontSize="19" fontWeight="700" fill={c.txt} style={{ pointerEvents:"none" }}>{l.n}</text>
+                      <text x={cx} y={cy+20} textAnchor="middle" fontSize="13" fill={c.txt} opacity="0.85" style={{ pointerEvents:"none" }}>{l.m2} m²</text>
+                    </>
+                  )}
+                  {isPas && <text x={cx} y={cy+5} textAnchor="middle" fontSize="13" fill="#CBD5E1" style={{ pointerEvents:"none" }}>pasillo</text>}
+                </g>
+              );
+            })}
+          </g>
+        </svg>
+
+        {/* Controles de navegación */}
+        <div style={{ position:"absolute", bottom:18, right:18, display:"flex", flexDirection:"column", gap:8 }}>
+          <div style={{ display:"flex", flexDirection:"column", background:"#fff", border:"1px solid #E2E8F0", borderRadius:10, overflow:"hidden", boxShadow:"0 2px 8px rgba(15,23,42,.06)" }}>
+            <button onClick={()=>zoomBtn(1)} style={btnIcon}>＋</button>
+            <div style={{ height:1, background:"#EDF0F2" }} />
+            <button onClick={()=>zoomBtn(-1)} style={btnIcon}>－</button>
+          </div>
+          <button onClick={fit} style={{ ...btnIcon, width:"auto", padding:"0 12px", height:36, fontSize:12, fontWeight:600, background:"#fff", border:"1px solid #E2E8F0", borderRadius:10, color:C.sub, boxShadow:"0 2px 8px rgba(15,23,42,.06)" }}>Ajustar</button>
+        </div>
+
+        {/* Hint de interacción */}
+        <div style={{ position:"absolute", top:16, left:16, fontSize:12, color:C.faint, background:"rgba(255,255,255,.7)", borderRadius:8, padding:"5px 10px", backdropFilter:"blur(4px)" }}>
+          Arrastra para moverte · rueda para zoom · clic en un local para ver detalle
+        </div>
+
+        {/* Zoom level */}
+        <div style={{ position:"absolute", bottom:18, left:18, fontSize:12, color:C.faint, background:"rgba(255,255,255,.7)", borderRadius:8, padding:"4px 9px" }}>
+          {Math.round(view.k*100)}%
+        </div>
+      </div>
+
+      {/* Leyenda (única, de ocupación) */}
+      <div style={{ display:"flex", gap:18, marginTop:14, alignItems:"center" }}>
+        <span style={{ fontSize:12, color:C.faint }}>Ocupación</span>
+        <div style={{ flex:1 }} />
+        {[["Ocupado","#115E59"],["Vence 4–9 m","#F59E0B"],["Vence ≤3 m","#EF4444"],["Vacante","#E2E8F0"]].map(([t,col])=>(
+          <div key={t} style={{ display:"flex", alignItems:"center", gap:6 }}>
+            <span style={{ width:12, height:12, borderRadius:3, background:col }} /><span style={{ fontSize:12, color:C.sub }}>{t}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+const btnIcon = { width:36, height:36, border:"none", background:"#fff", color:C.sub, fontSize:18, cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center" };
+
+// ---------------------------------------------------------------------------
+function fmtVenc(r){ if(r==null) return "Sin contrato"; if(r<=0) return "Vencido"; if(r<=3) return `En ${r} ${r===1?"mes":"meses"} · crítico`; return `En ${r} meses`; }
+function PanelDetalle({ l, onClose }){
+  if(!l) return null;
+  const v=calcVariable(l);
+  const pagoColor=!l.pagos?C.faint:l.pagos==="al corriente"?"#15803D":"#B91C1C";
+  const Row=({k,val,strong,color})=>(<div style={{ display:"flex", justifyContent:"space-between", marginBottom:8 }}><span style={{ fontSize:12.5, color:C.sub }}>{k}</span><span style={{ fontSize:12.5, fontWeight:strong?700:600, color:color||C.ink, textAlign:"right" }}>{val}</span></div>);
+  const Section=({title,children})=>(<div style={{ marginBottom:16 }}><div style={{ fontSize:11, fontWeight:700, color:C.faint, textTransform:"uppercase", letterSpacing:".05em", marginBottom:10 }}>{title}</div>{children}</div>);
+  const Chip=({txt,color,bg})=>(<span style={{ fontSize:11, fontWeight:600, color, background:bg, borderRadius:6, padding:"3px 9px" }}>{txt}</span>);
+  return (
+    <div style={{ width:340, flexShrink:0, borderLeft:`1px solid ${C.line}`, paddingLeft:22, marginLeft:4, alignSelf:"stretch" }}>
+      <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:16 }}>
+        <div><div style={{ fontSize:22, fontWeight:700, color:C.ink, lineHeight:1.1 }}>{l.n}</div><div style={{ fontSize:13, color:C.sub, marginTop:4 }}>Local #{l.id} · {l.m2} m²</div></div>
+        <button onClick={onClose} style={{ border:"none", background:"transparent", cursor:"pointer", color:C.faint, fontSize:20, lineHeight:1 }}>×</button>
+      </div>
+      <Section title="Giro / Estado">
+        <div style={{ display:"flex", gap:8, flexWrap:"wrap" }}>
+          {l.cat && <Chip txt={l.cat} color="#1E293B" bg="#F1F5F9" />}
+          <Chip txt={{ocupado:"Ocupado",vacante:"Vacante",por_vencer:"Por vencer",no_arrendable:"No arrendable"}[l.estado]} color={l.estado==="ocupado"?C.teal700:l.estado==="por_vencer"?"#92400E":"#475569"} bg={l.estado==="ocupado"?C.tealBg:l.estado==="por_vencer"?"#FEF3C7":"#F1F5F9"} />
+        </div>
+      </Section>
+      <Section title="Contrato"><Row k="Inicio" val={l.inicio||"—"} /><Row k="Vencimiento" val={fmtVenc(l.venc)} color={l.venc!=null&&l.venc<=3?"#B91C1C":C.ink} /></Section>
+      <Section title="Salud de cobranza"><Row k="Estado de pago" val={l.pagos||"—"} color={pagoColor} strong /></Section>
+      <Section title={v.tipo==="variable"?"Renta variable (RMG + % ventas)":"Renta"}>
+        {v.tipo==="variable"?(
+          <div style={{ background:C.tealBg, border:"1px solid #99F6E4", borderRadius:12, padding:14 }}>
+            <Row k="RMG (piso)" val={fmt(v.piso)} /><Row k="Ventas del mes" val={fmt(l.ventas)} /><Row k={`Variable (${l.pct}%)`} val={fmt(v.variable)} />
+            <div style={{ borderTop:"1px solid #99F6E4", margin:"8px 0", paddingTop:8 }}>
+              <Row k="Cobro del mes" val={fmt(v.cobro)} strong color={C.teal700} /><Row k="Excedente" val={v.excedente>0?fmt(v.excedente):"—"} color={v.excedente>0?C.teal700:C.faint} />
+            </div>
+            <div style={{ fontSize:12, fontWeight:700, marginTop:4, color:v.ratio<1?"#B91C1C":C.teal700 }}>{v.ratio<1?"⚠ Ventas no cubren el RMG":v.ratio>=1.5?"▲ Excedente fuerte":"✓ Cobertura sana"}</div>
+          </div>
+        ):(
+          <div style={{ background:"#F8FAFC", border:`1px solid ${C.line}`, borderRadius:12, padding:14, fontSize:13, color:C.faint, textAlign:"center" }}>{l.estado==="vacante"?"Local disponible para arrendar":"Sin renta variable registrada"}</div>
+        )}
+      </Section>
+      <button style={{ width:"100%", padding:11, fontSize:13, fontWeight:600, color:"#fff", background:C.ink, border:"none", borderRadius:9, cursor:"pointer" }}>Abrir expediente del local →</button>
+    </div>
+  );
+}
+
+function StackingMallV6(){
+  const [sel,setSel]=useState(null);
+  const [hover,setHover]=useState(null);
+  const local = LOCALES.find((l)=>l.id===sel);
+
+  return (
+    <div style={{ fontFamily:"'DM Sans',-apple-system,system-ui,sans-serif", background:"#fff", color:C.ink, minHeight:"100vh", padding:"18px 28px" }}>
+      <div style={{ display:"flex", alignItems:"center", gap:8, fontSize:13, color:C.faint, marginBottom:14 }}><span>▦ Mis activos</span><span>›</span><span style={{ color:C.sub }}>Plaza Centauri</span></div>
+      <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:14 }}>
+        <span style={{ fontSize:22 }}>🛍️</span><h1 style={{ fontSize:22, fontWeight:700, margin:0 }}>Plaza Centauri</h1>
+        <span style={{ fontSize:12, color:C.sub, background:"#F1F5F9", borderRadius:6, padding:"3px 9px", marginLeft:4 }}>Centro comercial · 18 locales</span>
+      </div>
+      <div style={{ display:"flex", gap:2, background:"#F8FAFC", borderRadius:9, padding:3, marginBottom:18, width:"fit-content" }}>
+        {["Información","Espacios","Stacking Plan"].map((t,i)=>(<button key={t} style={{ padding:"7px 16px", fontSize:13, fontWeight:600, borderRadius:7, cursor:"pointer", border:"none", background:i===2?"#fff":"transparent", color:i===2?C.ink:C.sub, boxShadow:i===2?"0 1px 2px rgba(0,0,0,.06)":"none" }}>{t}{i===2&&<span style={{ marginLeft:6, fontSize:9, fontWeight:700, color:C.teal700, background:C.tealBg, borderRadius:4, padding:"1px 5px", verticalAlign:"middle" }}>NUEVO</span>}</button>))}
+      </div>
+
+      {/* El mapa domina: lienzo grande + panel solo cuando hay selección */}
+      <div style={{ display:"flex", gap:22, alignItems:"flex-start" }}>
+        <Mapa sel={sel} onSel={setSel} hover={hover} setHover={setHover} />
+        {local && <PanelDetalle l={local} onClose={()=>setSel(null)} />}
+      </div>
+    </div>
+  );
+}
+
+
+const rootEl = document.getElementById("root");
+ReactDOM.createRoot(rootEl).render(<StackingMallV6 />);
+</script>
+</body>
+</html>
