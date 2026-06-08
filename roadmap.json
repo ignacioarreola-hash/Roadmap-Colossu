@@ -2,7 +2,7 @@
   "meta": {
     "producto": "Colossu",
     "version": "v5",
-    "actualizado": "2026-06-08",
+    "actualizado": "2026-06-09",
     "equipo": "Pod-SaaS Spot2",
     "sectores": {
       "producto": "Producto & Operación",
@@ -24,7 +24,7 @@
       "wave": "w0",
       "sector": "producto",
       "estatus": "Listo",
-      "responsable": "Pod-SaaS",
+      "responsable": "Gabriel",
       "eta": "Entregado",
       "figma_url": "",
       "info_clave": "Complejo → Piso → Espacio. La columna vertebral del modelo de datos. Base ya construida y en producción."
@@ -35,7 +35,7 @@
       "wave": "w0",
       "sector": "producto",
       "estatus": "Listo",
-      "responsable": "Dante",
+      "responsable": "Gabriel",
       "eta": "Entregado",
       "figma_url": "",
       "info_clave": "Extracción asistida con OCR, entrenado con contratos reales (Llama Cloud). Estado terminal 'Cerrado' va a tab Histórico."
@@ -46,7 +46,7 @@
       "wave": "w0",
       "sector": "producto",
       "estatus": "Listo",
-      "responsable": "Pod-SaaS",
+      "responsable": "Gabriel",
       "eta": "Entregado",
       "figma_url": "",
       "info_clave": "Leads, empresas y pipelines con vista Kanban. Ganado / perdido. Integración con formularios embebibles."
@@ -57,7 +57,7 @@
       "wave": "w0",
       "sector": "producto",
       "estatus": "En proceso",
-      "responsable": "Gabriel · Josue",
+      "responsable": "Gabriel",
       "eta": "Q2 2026",
       "figma_url": "",
       "info_clave": "Forma A (cargo directo) / Forma B (depósito global FIFO), RMG, vista 360° del contrato. Registro manual de pagos. Criterio de validación: ≥2 de 4 tenants registran 10+ pagos reales en 2 semanas post-launch."
@@ -68,7 +68,7 @@
       "wave": "w0",
       "sector": "agentica",
       "estatus": "Listo",
-      "responsable": "Fabián · Dante",
+      "responsable": "Fabián y Dante",
       "eta": "Entregado",
       "figma_url": "",
       "info_clave": "10 prompts pre-built + generación documental. Infraestructura de interoperabilidad — aún no es el moat. El moat vive en el agente vertical, no en el MCP crudo."
@@ -79,7 +79,7 @@
       "wave": "w0",
       "sector": "plataforma",
       "estatus": "Listo",
-      "responsable": "Pod-SaaS",
+      "responsable": "Mosh",
       "eta": "Entregado",
       "figma_url": "",
       "info_clave": "Ingesta de leads vía webhooks al CRM. Wedge comercial que se conectará al agente / WhatsApp / follow-up en waves posteriores."
@@ -90,19 +90,18 @@
       "wave": "w0",
       "sector": "plataforma",
       "estatus": "Listo",
-      "responsable": "Josue",
+      "responsable": "Mosh",
       "eta": "Entregado",
       "figma_url": "",
       "info_clave": "Engine base de avisos por evento. Contiene la tesis de plataforma proactiva; se conectará al agente en la capa agéntica."
     },
-
     {
       "id": "w1-rediseno-ui",
       "titulo": "Rediseño UI + Brand Kit",
       "wave": "w1",
       "sector": "producto",
       "estatus": "En proceso",
-      "responsable": "Gabriel + diseño · Josue",
+      "responsable": "Gabriel",
       "eta": "Q3 2026",
       "figma_url": "https://figma.com/file/PLACEHOLDER/brand-kit",
       "info_clave": "RFC/sprint fusionado. 4 campos por cuenta (font, logo, color primario/secundario) aplicados a 7 templates MCP. Diseño inspirado en Attio: minimalista, espacioso, bordes sutiles, neutros. Dependencia de Dante para MCP/templates y permisos."
@@ -113,7 +112,7 @@
       "wave": "w1",
       "sector": "producto",
       "estatus": "En proceso",
-      "responsable": "Gabriel · Josue",
+      "responsable": "Gabriel",
       "eta": "Q3 2026",
       "figma_url": "https://figma.com/file/PLACEHOLDER/cobranza-dashboard",
       "info_clave": "Vista plana rediseñada con tabs Cargos · Ventas reportadas. KPIs dinámicos. Estados de ventas separados de estados de cargos."
@@ -124,9 +123,9 @@
       "wave": "w1",
       "sector": "producto",
       "estatus": "En proceso",
-      "responsable": "Gabriel · Josue · Dante · Vicente",
+      "responsable": "Gabriel",
       "eta": "Q3 2026",
-      "figma_url": "https://figma.com/file/PLACEHOLDER/renta-variable",
+      "figma_url": "prototipos/renta-variable/index.html",
       "info_clave": "Lógica max(RMG, ventas × %). Lifecycle versionado con rule_version_id + calculation_snapshot. Excedente variable como BillingRecord separado con reference_period. minimum_guaranteed es el término canónico (no fixed_and_variable)."
     },
     {
@@ -135,7 +134,7 @@
       "wave": "w1",
       "sector": "producto",
       "estatus": "Por hacer",
-      "responsable": "Gabriel · Dante",
+      "responsable": "Gabriel",
       "eta": "Q3 2026",
       "figma_url": "",
       "info_clave": "Tokens por skill, créditos remanentes, histórico por cuenta. Visible para el usuario. Datos de Langfuse: mediana ~122K tokens/thread, ~$0.10 USD real/crédito. Usa el mismo reporte que da el LLM ID."
@@ -146,7 +145,7 @@
       "wave": "w1",
       "sector": "agentica",
       "estatus": "Por hacer",
-      "responsable": "Dante",
+      "responsable": "Fabián y Dante",
       "eta": "Q3 2026",
       "figma_url": "",
       "info_clave": "Campos personalizados por entidad (tipo de dato, label, title). Ej: exclusiones_contrato. Rompe la rigidez del esquema fijo. Se materializa en base de datos. Habilita que el agente razone sobre datos específicos del negocio."
@@ -157,7 +156,7 @@
       "wave": "w1",
       "sector": "agentica",
       "estatus": "En proceso",
-      "responsable": "Fabián · Dante",
+      "responsable": "Fabián y Dante",
       "eta": "Q2 2026",
       "figma_url": "",
       "info_clave": "Filtro por intención del usuario antes de cargar skills/tools. Evita cargar todas las tools en cada mensaje. Reduce latencia y consumo de tokens. Manejo especial para saludos y mensajes simples."
@@ -168,7 +167,7 @@
       "wave": "w1",
       "sector": "plataforma",
       "estatus": "Por hacer",
-      "responsable": "Gabriel (FE) · Josue (BE)",
+      "responsable": "Mosh",
       "eta": "Q3 2026",
       "figma_url": "",
       "info_clave": "PRERREQUISITO del camino agéntico. Acceso Total/Restringido por usuario; backend valida cada GET. SAAS-1365 — reasignar de Horacio a Gabriel + Josue. Habilita que un agente escriba sin exponer datos fuera de permiso."
@@ -179,7 +178,7 @@
       "wave": "w1",
       "sector": "plataforma",
       "estatus": "Por hacer",
-      "responsable": "Josue",
+      "responsable": "Mosh",
       "eta": "Q3 2026",
       "figma_url": "",
       "info_clave": "Super-admin por cuenta tenant que gestiona quién accede a qué. Depende de RBAC granular."
@@ -190,7 +189,7 @@
       "wave": "w1",
       "sector": "plataforma",
       "estatus": "Por hacer",
-      "responsable": "Pod-SaaS",
+      "responsable": "Mosh",
       "eta": "Q3 2026",
       "figma_url": "",
       "info_clave": "Conexión de Notan Hub con los demás módulos y su sistema de notificaciones para tareas. Notas/tareas vinculadas a entidades (Contrato, Empresa, Espacio, Cargo). Extensión RFC 106. Habilita avisos y seguimiento de tareas a través de toda la plataforma."
@@ -201,21 +200,20 @@
       "wave": "w1",
       "sector": "plataforma",
       "estatus": "Por hacer",
-      "responsable": "Fabián",
+      "responsable": "Mosh",
       "eta": "Q3 2026",
       "figma_url": "",
       "info_clave": "Reportes de uso de sandbox y ejecuciones de workflows. Visibilidad temprana sobre costos operativos y rendimiento."
     },
-
     {
       "id": "w2-stacking-plan",
       "titulo": "Stacking Plan · todas las fases",
       "wave": "w2",
       "sector": "producto",
       "estatus": "Por hacer",
-      "responsable": "Gabriel · Dante · Alfonso",
+      "responsable": "Gabriel",
       "eta": "Q4 2026",
-      "figma_url": "https://figma.com/file/PLACEHOLDER/stacking-plan",
+      "figma_url": "prototipos/stacking-plan/index.html",
       "info_clave": "Mapa espacial 2D cenital navegable (Konva.js: pan/zoom/hover/click). Tres capas: Geometría → Espacio/Activo → Contrato. Lentes: Ocupación, Salud Comercial (ventas vs RMG). Fase 3 cruza con Cobranza Variable. 3D explícitamente rechazado."
     },
     {
@@ -224,7 +222,7 @@
       "wave": "w2",
       "sector": "agentica",
       "estatus": "Por hacer",
-      "responsable": "Dante",
+      "responsable": "Fabián y Dante",
       "eta": "Q4 2026",
       "figma_url": "",
       "info_clave": "Etiquetas inteligentes automáticas sobre datos, tablas, conversaciones y documentos a través de toda la app. El agente etiqueta proactivamente. Habilita que encuentre y relacione información sin esquema rígido."
@@ -235,7 +233,7 @@
       "wave": "w2",
       "sector": "agentica",
       "estatus": "Por hacer",
-      "responsable": "Dante · Fabián",
+      "responsable": "Fabián y Dante",
       "eta": "Q4 2026",
       "figma_url": "",
       "info_clave": "PRIORIDAD ALTA. Búsqueda semántica con embeddings + citations sobre la knowledge base del tenant. La ingesta vive en Plataforma; aquí vive la consulta inteligente. Habilita respuestas confiables del portafolio con fuentes — el criterio de los 90 días. NO GraphRAG en v1: tagging + embeddings simples primero."
@@ -246,7 +244,7 @@
       "wave": "w2",
       "sector": "agentica",
       "estatus": "Por hacer",
-      "responsable": "Fabián · Dante",
+      "responsable": "Fabián y Dante",
       "eta": "Q4 2026",
       "figma_url": "",
       "info_clave": "ADELANTADO a W2. Observa patrones (reportes mensuales, ciclos de cobranza) y genera cronjobs proactivos. Sugiere y ejecuta cálculos de negocio, recordatorios y documentos sin intervención manual. El corazón del moat: Colossu como empleado proactivo."
@@ -257,7 +255,7 @@
       "wave": "w2",
       "sector": "agentica",
       "estatus": "Por hacer",
-      "responsable": "Dante",
+      "responsable": "Fabián y Dante",
       "eta": "Q4 2026",
       "figma_url": "",
       "info_clave": "Agentes especializados por área: finanzas, cobranza, marketing, riesgos contractuales, pipeline de leads. Conocimiento profundo por vertical. Habilita precisión que un copilot genérico (Copilot Kit de Microsoft) no alcanza."
@@ -268,7 +266,7 @@
       "wave": "w2",
       "sector": "agentica",
       "estatus": "Por hacer",
-      "responsable": "Fabián · Dante",
+      "responsable": "Fabián y Dante",
       "eta": "Q4 2026",
       "figma_url": "",
       "info_clave": "ADELANTADO de W3, full scope. Asistente 24/7 vía mensajería: inbound/outbound, contact matching, voice notes, approval UX para acciones sensibles, continuidad de thread, audit log. Operar casi todo sin entrar a la web. Djinn2-chat, WhatsApp categoría Utility."
@@ -279,7 +277,7 @@
       "wave": "w2",
       "sector": "agentica",
       "estatus": "Por hacer",
-      "responsable": "Dante · Fabián",
+      "responsable": "Fabián y Dante",
       "eta": "Exploración",
       "figma_url": "",
       "info_clave": "EXPLORACIÓN, no committed. Visualizaciones dinámicas vía json_renderer o framework propio desde consultas naturales. Dante lo despriorizó hasta consolidar la fundación de conocimiento."
@@ -290,7 +288,7 @@
       "wave": "w2",
       "sector": "plataforma",
       "estatus": "Por hacer",
-      "responsable": "Dante · Vicente",
+      "responsable": "Mosh",
       "eta": "Q4 2026",
       "figma_url": "",
       "info_clave": "Ingesta nativa SharePoint/Drive/S3 + sync con la BD del cliente (ocupación, ventas RMG, payments). Embeddings automáticos por documento (docx, xlsx, ppt, imágenes). Habilita medir CxC, cobranza y vacancia desde data viva. S3 tenant-scoped con audit."
@@ -301,7 +299,7 @@
       "wave": "w2",
       "sector": "plataforma",
       "estatus": "Por hacer",
-      "responsable": "Dante · Fabián",
+      "responsable": "Mosh",
       "eta": "Q4 2026",
       "figma_url": "",
       "info_clave": "Skills, cronjobs y memorias en la BD de Colossu (tenant_id + env), no en el runtime. Endpoints get/search/create_skill y cronjob. Audit viewer estilo 'Twenty' (prompt + tool calls + evidencia + owner + estado). Approval gates para writes. Habilita automatización vendible y auditable."
@@ -312,7 +310,7 @@
       "wave": "w2",
       "sector": "plataforma",
       "estatus": "Por hacer",
-      "responsable": "Dante",
+      "responsable": "Mosh",
       "eta": "Q4 2026",
       "figma_url": "",
       "info_clave": "Conexión a ERPs y herramientas del tenant vía Composio.dev. Colossu Headless (Pulumi/Terraform) para IT de tenant enterprise."
@@ -323,7 +321,7 @@
       "wave": "w2",
       "sector": "plataforma",
       "estatus": "Por hacer",
-      "responsable": "Pod-SaaS · Tatiana (compliance)",
+      "responsable": "Mosh",
       "eta": "Q4 2026",
       "figma_url": "",
       "info_clave": "SOC 2 Type II · ISO 27001 · OWASP · Zero Trust · FGA con JIT. Privacy by Design desde W1. Depende del análisis de compliance de Tatiana (LFPDPPP 2025)."
@@ -334,19 +332,18 @@
       "wave": "w2",
       "sector": "plataforma",
       "estatus": "Por hacer",
-      "responsable": "Spark (externo) · Poncho (sponsor)",
+      "responsable": "Mosh",
       "eta": "Q4 2026",
       "figma_url": "",
       "info_clave": "Equipo externo Spark construye algo similar; arranca ~1 mes antes del cierre de W1 con overlap deliberado. Requiere revisión de Tatiana (LFPDPPP). Pendiente NOM-151 para log de auditoría con valor probatorio."
     },
-
     {
       "id": "w3-carga-masiva",
       "titulo": "Carga masiva de históricos",
       "wave": "w3",
       "sector": "producto",
       "estatus": "Por hacer",
-      "responsable": "Pod-SaaS",
+      "responsable": "Gabriel",
       "eta": "2027",
       "figma_url": "",
       "info_clave": "NUEVO — aún no lo tenemos. Bulk upload de contratos y datos históricos existentes. Se apoya en la conexión a BD/Drive de W2. Habilita onboarding de portafolios grandes sin captura manual."
@@ -357,7 +354,7 @@
       "wave": "w3",
       "sector": "agentica",
       "estatus": "Por hacer",
-      "responsable": "Dante · Fabián",
+      "responsable": "Fabián y Dante",
       "eta": "2027",
       "figma_url": "",
       "info_clave": "Detecta tareas repetitivas de forma autónoma y las convierte en skills/cronjobs reutilizables. Cierra el ciclo de aprendizaje continuo. Habilita que el sistema evolucione con cada cliente."
@@ -368,7 +365,7 @@
       "wave": "w3",
       "sector": "agentica",
       "estatus": "Por hacer",
-      "responsable": "Dante",
+      "responsable": "Fabián y Dante",
       "eta": "2027",
       "figma_url": "",
       "info_clave": "Analiza el grafo de conocimiento para anticipar riesgos contractuales, salud de rentas y oportunidades de pipeline. Habilita decisiones antes de que el usuario detecte el problema."
@@ -379,7 +376,7 @@
       "wave": "w3",
       "sector": "agentica",
       "estatus": "Por hacer",
-      "responsable": "Dante · Fabián · Poncho (sponsor)",
+      "responsable": "Fabián y Dante",
       "eta": "2027",
       "figma_url": "",
       "info_clave": "El agente gestiona la cobranza: cron jobs de mora, recordatorios proactivos, WhatsApp como canal nativo. Bitácora con valor probatorio (NOM-151 + Art. 49 Cód. Comercio). Habilita cobranza que se opera sola — el outcome de CxC."
@@ -390,7 +387,7 @@
       "wave": "w3",
       "sector": "plataforma",
       "estatus": "Por hacer",
-      "responsable": "Gabriel · Dante (discovery con producto)",
+      "responsable": "Mosh",
       "eta": "Discovery",
       "figma_url": "",
       "info_clave": "DISCOVERY — pendiente, no descartado. Relaciones explícitas entre documentos, contratos, assets y conversaciones (Llama Index / Neptune). Spike de producto primero: ¿qué relaciones le importan a un developer? (contrato ↔ espacio ↔ tenant ↔ pago ↔ vencimiento ↔ exclusiones). No le cerramos la puerta a Gabriel; la condicionamos a evidencia."
@@ -401,7 +398,7 @@
       "wave": "w3",
       "sector": "plataforma",
       "estatus": "Por hacer",
-      "responsable": "Pod-SaaS",
+      "responsable": "Mosh",
       "eta": "2027",
       "figma_url": "",
       "info_clave": "ADELANTADO de W4. Selección de PAC pendiente (moat regulatorio identificado). Cierra el outcome de CxC junto a Cobranza Difusión. Habilita medir CxC de punta a punta: cargo → cobranza → factura. CFDI 4.0, IVA 16%, RFC."
@@ -412,19 +409,18 @@
       "wave": "w3",
       "sector": "plataforma",
       "estatus": "Por hacer",
-      "responsable": "Pod-SaaS",
+      "responsable": "Mosh",
       "eta": "2027",
       "figma_url": "",
       "info_clave": "Sync bidireccional con el marketplace Spot2.mx (inventario, leads, webhooks profundos). Respeta el boundary legal: Colossu y Spot2 son entidades separadas; Spot2 recibe espacios pero no ve la info interna del tenant."
     },
-
     {
       "id": "w4-presencia-digital",
       "titulo": "Presencia digital del developer",
       "wave": "w4",
       "sector": "producto",
       "estatus": "Por hacer",
-      "responsable": "Pod-SaaS",
+      "responsable": "Gabriel",
       "eta": "2027+",
       "figma_url": "",
       "info_clave": "Sitio público alimentado por Asset Manager + Brand Kit. SEO técnico, digitalización asistida. Producto + servicio profesional."
@@ -435,7 +431,7 @@
       "wave": "w4",
       "sector": "plataforma",
       "estatus": "Por hacer",
-      "responsable": "Pod-SaaS · Tatiana (CNBV/Condusef)",
+      "responsable": "Mosh",
       "eta": "2027+",
       "figma_url": "",
       "info_clave": "Integración Syncfy, matching automático. 'Conciliar' ≠ 'Registrar pago'. Cierra el loop financiero pero NO es el centro del moat: el valor está en la inteligencia que opera sobre los datos, no en la reconciliación contable."
