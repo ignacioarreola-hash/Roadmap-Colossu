@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Roadmap Colossu · Dinámico</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --teal-700:#115E59; --teal-500:#14B8A6; --teal-50:#ECFDF8;
+    --indigo:#4338CA; --indigo-50:#EEF0FB;
+    --plum:#7C3AED; --plum-50:#F4EFFE;
+    --bg:#FAFAFB; --surface:#FFFFFF; --border:#ECECEE; --border-strong:#DDDDE0;
+    --ink:#1A1A1E; --ink-soft:#52525B; --ink-faint:#8A8A93;
+    --amber:#B45309; --amber-bg:#FEF6EC;
+    --radius:14px;
+    --shadow:0 1px 2px rgba(20,20,30,.04), 0 4px 16px rgba(20,20,30,.04);
+    --shadow-lift:0 2px 6px rgba(20,20,30,.06), 0 12px 32px rgba(20,20,30,.08);
+    --s1:#115E59; --s1-bg:#ECFDF8; --s1-bd:#CDE9E2;
+    --s2:#7C3AED; --s2-bg:#F4EFFE; --s2-bd:#E2D5FB;
+    --s3:#4338CA; --s3-bg:#EEF0FB; --s3-bd:#D5D9F5;
+    /* estatus */
+    --st-todo:#8A8A93; --st-todo-bg:#F3F3F4;
+    --st-doing:#B45309; --st-doing-bg:#FEF6EC;
+    --st-done:#115E59; --st-done-bg:#ECFDF8;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--ink);line-height:1.5;-webkit-font-smoothing:antialiased}
+  .serif{font-family:'DM Serif Display',serif;font-weight:400}
+
+  header{position:sticky;top:0;z-index:50;background:rgba(250,250,251,.82);backdrop-filter:saturate(180%) blur(12px);border-bottom:1px solid var(--border)}
+  .bar{max-width:1340px;margin:0 auto;padding:16px 32px;display:flex;align-items:center;gap:20px;flex-wrap:wrap}
+  .logo{display:flex;align-items:center;gap:11px;flex-shrink:0}
+  .logo-mark{width:30px;height:30px;border-radius:8px;background:linear-gradient(135deg,var(--teal-700),var(--teal-500));display:grid;place-items:center;color:#fff;font-family:'DM Serif Display',serif;font-size:18px;box-shadow:0 2px 8px rgba(17,94,89,.28)}
+  .logo-text{font-weight:600;font-size:16px;letter-spacing:-.01em}
+  .logo-text span{color:var(--ink-faint);font-weight:500}
+  .ver{margin-left:2px;font-size:11px;font-weight:600;color:var(--teal-700);background:var(--teal-50);padding:3px 8px;border-radius:20px;letter-spacing:.02em}
+
+  .toggle{margin-left:auto;display:flex;gap:4px;background:var(--surface);border:1px solid var(--border);border-radius:11px;padding:4px}
+  .toggle button{font-family:inherit;font-size:13.5px;font-weight:500;color:var(--ink-soft);background:transparent;border:none;padding:8px 16px;border-radius:8px;cursor:pointer;transition:all .18s ease}
+  .toggle button:hover{color:var(--ink)}
+  .toggle button.active{color:#fff;background:var(--teal-700)}
+
+  main{max-width:1340px;margin:0 auto;padding:36px 32px 80px}
+  .intro{max-width:760px;margin-bottom:34px}
+  .eyebrow{font-size:12px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--teal-500);margin-bottom:14px}
+  .intro h1{font-size:clamp(28px,4vw,42px);line-height:1.07;letter-spacing:-.02em;margin-bottom:14px}
+  .intro h1 em{font-style:italic;color:var(--teal-700)}
+  .intro p{font-size:17px;color:var(--ink-soft)}
+
+  /* filters */
+  .filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:28px;align-items:center}
+  .flabel{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-faint);margin-right:4px}
+  .fchip{font-family:inherit;font-size:12.5px;font-weight:500;padding:7px 13px;border-radius:9px;border:1px solid var(--border);background:var(--surface);color:var(--ink-soft);cursor:pointer;transition:all .16s ease}
+  .fchip:hover{border-color:var(--border-strong)}
+  .fchip.active{color:#fff;background:var(--ink);border-color:var(--ink)}
+  .fchip.s-producto.active{background:var(--s1);border-color:var(--s1)}
+  .fchip.s-agentica.active{background:var(--s2);border-color:var(--s2)}
+  .fchip.s-plataforma.active{background:var(--s3);border-color:var(--s3)}
+
+  .view{display:none;animation:fade .4s ease both}
+  .view.show{display:block}
+  @keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+  /* KANBAN */
+  .kanban{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+  @media(max-width:900px){.kanban{grid-template-columns:1fr}}
+  .col{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:18px;min-height:200px}
+  .col-h{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;padding:0 4px}
+  .col-h .ct{display:flex;align-items:center;gap:9px;font-size:14px;font-weight:600;letter-spacing:-.01em}
+  .col-h .dot{width:9px;height:9px;border-radius:3px}
+  .col-h .count{font-size:12px;font-weight:600;color:var(--ink-faint);background:var(--bg);padding:2px 9px;border-radius:20px}
+  .col.todo .dot{background:var(--st-todo)} .col.doing .dot{background:var(--st-doing)} .col.done .dot{background:var(--st-done)}
+
+  /* WAVES */
+  .wave-sec{margin-bottom:30px}
+  .wave-title{font-size:13px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--indigo);margin-bottom:4px}
+  .wave-sub{font-size:13px;color:var(--ink-faint);margin-bottom:18px}
+  .sblock{margin-top:14px;border-radius:14px;padding:18px 20px;border:1px solid}
+  .sblock.producto{background:linear-gradient(180deg,var(--s1-bg),#fff 60%);border-color:var(--s1-bd)}
+  .sblock.agentica{background:linear-gradient(180deg,var(--s2-bg),#fff 60%);border-color:var(--s2-bd)}
+  .sblock.plataforma{background:linear-gradient(180deg,var(--s3-bg),#fff 60%);border-color:var(--s3-bd)}
+  .sblock-h{display:flex;align-items:center;gap:9px;margin-bottom:13px}
+  .sblock-h .sdot{width:10px;height:10px;border-radius:3px;flex-shrink:0}
+  .sblock.producto .sdot{background:var(--s1)} .sblock.agentica .sdot{background:var(--s2)} .sblock.plataforma .sdot{background:var(--s3)}
+  .sblock-h .nm{font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase}
+  .sblock.producto .nm{color:var(--s1)} .sblock.agentica .nm{color:var(--s2)} .sblock.plataforma .nm{color:var(--s3)}
+  .grid-cards{display:grid;grid-template-columns:1fr 1fr;gap:11px}
+  @media(max-width:720px){.grid-cards{grid-template-columns:1fr}}
+
+  /* CARD (shared) */
+  .card{background:#fff;border:1px solid var(--border);border-radius:12px;padding:15px 17px;cursor:pointer;transition:all .18s ease;position:relative}
+  .card:hover{border-color:var(--border-strong);box-shadow:var(--shadow-lift);transform:translateY(-2px)}
+  .card .ch{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:9px}
+  .card h4{font-size:14.5px;letter-spacing:-.01em;line-height:1.3}
+  .card .badge{flex-shrink:0;font-size:9.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;padding:3px 8px;border-radius:6px;white-space:nowrap}
+  .badge.todo{color:var(--st-todo);background:var(--st-todo-bg)}
+  .badge.doing{color:var(--st-doing);background:var(--st-doing-bg)}
+  .badge.done{color:var(--st-done);background:var(--st-done-bg)}
+  .card .meta{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px}
+  .card .tag{font-size:11px;font-weight:500;color:var(--ink-soft);background:var(--bg);border:1px solid var(--border);padding:3px 8px;border-radius:7px;display:inline-flex;align-items:center;gap:4px}
+  .card .sct{width:8px;height:8px;border-radius:2px;display:inline-block}
+  .sct.producto{background:var(--s1)} .sct.agentica{background:var(--s2)} .sct.plataforma{background:var(--s3)}
+  .card .wv{font-size:10.5px;font-weight:600;color:var(--ink-faint)}
+
+  /* MODAL */
+  .overlay{position:fixed;inset:0;background:rgba(20,20,30,.42);backdrop-filter:blur(4px);z-index:100;display:none;align-items:center;justify-content:center;padding:24px;animation:ofade .25s ease both}
+  .overlay.show{display:flex}
+  @keyframes ofade{from{opacity:0}to{opacity:1}}
+  .modal{background:var(--surface);border-radius:20px;max-width:560px;width:100%;max-height:88vh;overflow-y:auto;box-shadow:0 24px 70px rgba(20,20,30,.28);animation:mpop .32s cubic-bezier(.2,.9,.3,1) both}
+  @keyframes mpop{from{opacity:0;transform:scale(.94) translateY(14px)}to{opacity:1;transform:none}}
+  .modal-top{padding:30px 32px 0;position:relative}
+  .modal-close{position:absolute;top:22px;right:24px;width:32px;height:32px;border-radius:9px;border:1px solid var(--border);background:#fff;color:var(--ink-soft);font-size:17px;cursor:pointer;display:grid;place-items:center;transition:all .16s ease;line-height:1}
+  .modal-close:hover{background:var(--bg);color:var(--ink)}
+  .modal .m-badges{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+  .modal h2{font-size:24px;letter-spacing:-.02em;line-height:1.2;margin-bottom:6px;padding-right:40px}
+  .modal .m-wave{font-size:12.5px;font-weight:600;color:var(--ink-faint);letter-spacing:.02em}
+  .modal-body{padding:22px 32px 8px}
+  .m-row{display:grid;grid-template-columns:auto 1fr;gap:14px 18px;margin-bottom:22px}
+  .m-row .k{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-faint);padding-top:2px}
+  .m-row .v{font-size:14.5px;color:var(--ink);font-weight:500}
+  .m-info{background:var(--bg);border:1px solid var(--border);border-radius:13px;padding:18px 20px;margin-bottom:24px}
+  .m-info .k{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--teal-700);margin-bottom:9px}
+  .m-info p{font-size:14px;color:var(--ink-soft);line-height:1.6}
+  .modal-foot{padding:0 32px 30px}
+  .btn-figma{display:flex;align-items:center;justify-content:center;gap:9px;width:100%;font-family:inherit;font-size:15px;font-weight:600;letter-spacing:-.01em;color:#fff;background:linear-gradient(135deg,var(--teal-700),var(--teal-500));border:none;border-radius:12px;padding:15px;cursor:pointer;transition:all .2s ease;text-decoration:none;box-shadow:0 4px 16px rgba(17,94,89,.24)}
+  .btn-figma:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(17,94,89,.32)}
+  .btn-figma.disabled{background:var(--bg);color:var(--ink-faint);box-shadow:none;cursor:not-allowed;border:1px solid var(--border)}
+  .btn-figma.disabled:hover{transform:none;box-shadow:none}
+
+  .loading,.errbox{text-align:center;padding:80px 20px;color:var(--ink-faint);font-size:15px}
+  .errbox{color:var(--amber)}
+  .errbox code{background:var(--amber-bg);padding:2px 7px;border-radius:5px;font-size:13px}
+
+  footer{max-width:1340px;margin:0 auto;padding:32px;border-top:1px solid var(--border);font-size:12.5px;color:var(--ink-faint);display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px}
+  .legend{display:flex;gap:16px;flex-wrap:wrap}
+  .legend span{display:flex;align-items:center;gap:6px}
+  .ldot{width:9px;height:9px;border-radius:3px}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="bar">
+    <div class="logo">
+      <div class="logo-mark">C</div>
+      <div class="logo-text">Colossu <span>· Roadmap</span></div>
+      <div class="ver" id="ver">v5</div>
+    </div>
+    <div class="toggle" id="toggle">
+      <button class="active" data-v="kanban">Kanban</button>
+      <button data-v="waves">Waves</button>
+    </div>
+  </div>
+</header>
+
+<main>
+  <div class="intro">
+    <div class="eyebrow">Plan estratégico · Pod-SaaS Spot2</div>
+    <h1>El moat es el <em>valor generado</em>, no la data atrapada.</h1>
+    <p>Vista Kanban para seguimiento por estatus · vista Waves para la dirección estratégica por sectores. Haz clic en cualquier tarjeta para ver el detalle.</p>
+  </div>
+
+  <div class="filters" id="filters">
+    <span class="flabel">Sector</span>
+    <button class="fchip s-all active" data-sector="all">Todos</button>
+    <button class="fchip s-producto" data-sector="producto">Producto &amp; Operación</button>
+    <button class="fchip s-agentica" data-sector="agentica">Capa Agéntica</button>
+    <button class="fchip s-plataforma" data-sector="plataforma">Plataforma &amp; Arquitectura</button>
+  </div>
+
+  <div id="loading" class="loading">Cargando roadmap…</div>
+
+  <!-- KANBAN VIEW -->
+  <div class="view" id="view-kanban">
+    <div class="kanban">
+      <div class="col todo"><div class="col-h"><div class="ct"><span class="dot"></span>Por hacer</div><span class="count" id="count-todo">0</span></div><div id="col-todo"></div></div>
+      <div class="col doing"><div class="col-h"><div class="ct"><span class="dot"></span>En proceso</div><span class="count" id="count-doing">0</span></div><div id="col-doing"></div></div>
+      <div class="col done"><div class="col-h"><div class="ct"><span class="dot"></span>Listo</div><span class="count" id="count-done">0</span></div><div id="col-done"></div></div>
+    </div>
+  </div>
+
+  <!-- WAVES VIEW -->
+  <div class="view" id="view-waves"></div>
+</main>
+
+<!-- MODAL -->
+<div class="overlay" id="overlay">
+  <div class="modal" id="modal" role="dialog" aria-modal="true">
+    <div class="modal-top">
+      <button class="modal-close" id="modalClose" aria-label="Cerrar">✕</button>
+      <div class="m-badges" id="mBadges"></div>
+      <h2 id="mTitle"></h2>
+      <div class="m-wave" id="mWave"></div>
+    </div>
+    <div class="modal-body">
+      <div class="m-row">
+        <div class="k">Responsable</div><div class="v" id="mResp"></div>
+        <div class="k">ETA</div><div class="v" id="mEta"></div>
+        <div class="k">Estatus</div><div class="v" id="mStatus"></div>
+      </div>
+      <div class="m-info">
+        <div class="k">Información clave · qué sigue, bloqueos y contexto</div>
+        <p id="mInfo"></p>
+      </div>
+    </div>
+    <div class="modal-foot" id="mFoot"></div>
+  </div>
+</div>
+
+<footer>
+  <div class="legend">
+    <span><span class="ldot" style="background:var(--st-todo)"></span>Por hacer</span>
+    <span><span class="ldot" style="background:var(--st-doing)"></span>En proceso</span>
+    <span><span class="ldot" style="background:var(--st-done)"></span>Listo</span>
+  </div>
+  <div id="footMeta">Roadmap Colossu · Pod-SaaS Spot2</div>
+</footer>
+
+<script>
+  const STATUS = {
+    "Por hacer":  { key:"todo",  col:"col-todo",  cnt:"count-todo"  },
+    "En proceso": { key:"doing", col:"col-doing", cnt:"count-doing" },
+    "Listo":      { key:"done",  col:"col-done",  cnt:"count-done"  }
+  };
+  const SECTOR_NAMES = { producto:"Producto & Operación", agentica:"Capa Agéntica", plataforma:"Plataforma & Arquitectura" };
+
+  let DATA = null;
+  let activeSector = "all";
+  let activeView = "kanban";
+
+  const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
+
+  function cardHTML(p){
+    const st = STATUS[p.estatus] || STATUS["Por hacer"];
+    const wv = DATA.meta.waves[p.wave] ? DATA.meta.waves[p.wave].split(" · ")[0] : "";
+    return `<div class="card" data-id="${esc(p.id)}">
+      <div class="ch">
+        <h4>${esc(p.titulo)}</h4>
+        <span class="badge ${st.key}">${esc(p.estatus)}</span>
+      </div>
+      <div class="meta">
+        <span class="tag"><span class="sct ${esc(p.sector)}"></span>${esc(SECTOR_NAMES[p.sector]||p.sector)}</span>
+        ${wv ? `<span class="tag wv">${esc(wv)}</span>` : ""}
+        ${p.responsable ? `<span class="tag">${esc(p.responsable)}</span>` : ""}
+      </div>
+    </div>`;
+  }
+
+  function visible(p){ return activeSector === "all" || p.sector === activeSector; }
+
+  function renderKanban(){
+    Object.values(STATUS).forEach(s => { document.getElementById(s.col).innerHTML = ""; });
+    const counts = { todo:0, doing:0, done:0 };
+    DATA.proyectos.filter(visible).forEach(p => {
+      const st = STATUS[p.estatus] || STATUS["Por hacer"];
+      document.getElementById(st.col).insertAdjacentHTML("beforeend", cardHTML(p));
+      counts[st.key]++;
+    });
+    document.getElementById("count-todo").textContent  = counts.todo;
+    document.getElementById("count-doing").textContent = counts.doing;
+    document.getElementById("count-done").textContent  = counts.done;
+  }
+
+  function renderWaves(){
+    const host = document.getElementById("view-waves");
+    host.innerHTML = "";
+    const sectorsOrder = ["producto","agentica","plataforma"];
+    Object.keys(DATA.meta.waves).forEach(waveKey => {
+      const inWave = DATA.proyectos.filter(p => p.wave === waveKey && visible(p));
+      if(!inWave.length) return;
+      const full = DATA.meta.waves[waveKey];
+      const [wtitle, wsub] = full.split(" · ");
+      let blocks = "";
+      sectorsOrder.forEach(sec => {
+        const items = inWave.filter(p => p.sector === sec);
+        if(!items.length) return;
+        blocks += `<div class="sblock ${sec}">
+          <div class="sblock-h"><span class="sdot"></span><span class="nm">${esc(SECTOR_NAMES[sec])}</span></div>
+          <div class="grid-cards">${items.map(cardHTML).join("")}</div>
+        </div>`;
+      });
+      host.insertAdjacentHTML("beforeend", `<div class="wave-sec">
+        <div class="wave-title">${esc(wtitle)}</div>
+        <div class="wave-sub">${esc(wsub||"")}</div>
+        ${blocks}
+      </div>`);
+    });
+  }
+
+  function renderAll(){ renderKanban(); renderWaves(); }
+
+  function openModal(id){
+    const p = DATA.proyectos.find(x => x.id === id);
+    if(!p) return;
+    const st = STATUS[p.estatus] || STATUS["Por hacer"];
+    document.getElementById("mBadges").innerHTML =
+      `<span class="badge ${st.key}">${esc(p.estatus)}</span>
+       <span class="tag"><span class="sct ${esc(p.sector)}"></span>${esc(SECTOR_NAMES[p.sector]||p.sector)}</span>`;
+    document.getElementById("mTitle").textContent = p.titulo;
+    document.getElementById("mWave").textContent = DATA.meta.waves[p.wave] || "";
+    document.getElementById("mResp").textContent = p.responsable || "—";
+    document.getElementById("mEta").textContent = p.eta || "—";
+    document.getElementById("mStatus").textContent = p.estatus || "—";
+    document.getElementById("mInfo").textContent = p.info_clave || "Sin información clave registrada.";
+    const foot = document.getElementById("mFoot");
+    if(p.figma_url){
+      foot.innerHTML = `<a class="btn-figma" href="${esc(p.figma_url)}" target="_blank" rel="noopener noreferrer">▶  Ver Prototipo</a>`;
+    } else {
+      foot.innerHTML = `<button class="btn-figma disabled" disabled>Sin prototipo aún</button>`;
+    }
+    document.getElementById("overlay").classList.add("show");
+  }
+  function closeModal(){ document.getElementById("overlay").classList.remove("show"); }
+
+  // delegated click for cards (works for both views, re-render safe)
+  document.addEventListener("click", e => {
+    const card = e.target.closest(".card");
+    if(card){ openModal(card.dataset.id); }
+  });
+  document.getElementById("modalClose").addEventListener("click", closeModal);
+  document.getElementById("overlay").addEventListener("click", e => { if(e.target.id === "overlay") closeModal(); });
+  document.addEventListener("keydown", e => { if(e.key === "Escape") closeModal(); });
+
+  // view toggle
+  document.getElementById("toggle").addEventListener("click", e => {
+    if(!e.target.dataset.v) return;
+    activeView = e.target.dataset.v;
+    document.querySelectorAll("#toggle button").forEach(b => b.classList.toggle("active", b.dataset.v === activeView));
+    document.getElementById("view-kanban").classList.toggle("show", activeView === "kanban");
+    document.getElementById("view-waves").classList.toggle("show", activeView === "waves");
+  });
+
+  // sector filter
+  document.getElementById("filters").addEventListener("click", e => {
+    if(!e.target.dataset.sector) return;
+    activeSector = e.target.dataset.sector;
+    document.querySelectorAll("#filters .fchip").forEach(c => c.classList.toggle("active", c.dataset.sector === activeSector));
+    renderAll();
+  });
+
+  // fetch data
+  fetch("roadmap.json")
+    .then(r => { if(!r.ok) throw new Error("HTTP " + r.status); return r.json(); })
+    .then(json => {
+      DATA = json;
+      document.getElementById("loading").style.display = "none";
+      document.getElementById("view-kanban").classList.add("show");
+      if(DATA.meta){
+        document.getElementById("ver").textContent = DATA.meta.version || "v5";
+        document.getElementById("footMeta").textContent =
+          `Roadmap ${DATA.meta.producto||"Colossu"} · ${DATA.meta.version||""} · ${DATA.meta.equipo||""} · actualizado ${DATA.meta.actualizado||""}`;
+      }
+      renderAll();
+    })
+    .catch(err => {
+      document.getElementById("loading").outerHTML =
+        `<div class="errbox">No se pudo cargar <code>roadmap.json</code> (${esc(err.message)}).<br>
+         Asegúrate de que el archivo esté junto al HTML y de servirlo vía HTTP (GitHub Pages o un servidor local), no abriéndolo con <code>file://</code>.</div>`;
+    });
+</script>
+</body>
+</html>
