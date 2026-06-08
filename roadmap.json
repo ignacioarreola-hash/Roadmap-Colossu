@@ -103,7 +103,7 @@
       "estatus": "En proceso",
       "responsable": "Gabriel",
       "eta": "Q3 2026",
-      "figma_url": "https://figma.com/file/PLACEHOLDER/brand-kit",
+      "figma_url": "",
       "info_clave": "RFC/sprint fusionado. 4 campos por cuenta (font, logo, color primario/secundario) aplicados a 7 templates MCP. Diseño inspirado en Attio: minimalista, espacioso, bordes sutiles, neutros. Dependencia de Dante para MCP/templates y permisos."
     },
     {
@@ -114,7 +114,7 @@
       "estatus": "En proceso",
       "responsable": "Gabriel",
       "eta": "Q3 2026",
-      "figma_url": "https://figma.com/file/PLACEHOLDER/cobranza-dashboard",
+      "figma_url": "",
       "info_clave": "Vista plana rediseñada con tabs Cargos · Ventas reportadas. KPIs dinámicos. Estados de ventas separados de estados de cargos."
     },
     {
