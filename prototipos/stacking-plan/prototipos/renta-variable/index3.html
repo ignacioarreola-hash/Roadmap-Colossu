@@ -1,0 +1,1472 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Renta Variable · Contrato RMG · Prototipo Colossu</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&family=DM+Serif+Display&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'DM Sans',sans-serif;background:#FAFAFB;color:#0F172A;-webkit-font-smoothing:antialiased}
+  #root{min-height:100vh}
+  .proto-bar{position:sticky;top:0;z-index:200;background:rgba(250,250,251,.85);backdrop-filter:blur(10px);border-bottom:1px solid #ECECEE;padding:10px 20px;display:flex;align-items:center;gap:12px;font-size:13px}
+  .proto-bar a{color:#115E59;font-weight:600;text-decoration:none;display:inline-flex;align-items:center;gap:6px}
+  .proto-bar a:hover{text-decoration:underline}
+  .proto-bar .sep{color:#CBD5E1}
+  .proto-bar .tt{color:#64748B;font-weight:500}
+  .proto-bar .tag{margin-left:auto;font-size:11px;font-weight:600;color:#115E59;background:#ECFDF8;padding:3px 9px;border-radius:20px}
+</style>
+</head>
+<body>
+<div class="proto-bar">
+  <a href="../../index.html">← Volver al roadmap</a>
+  <span class="sep">·</span>
+  <span class="tt">Renta Variable · Contrato RMG</span>
+  <span class="tag">Prototipo</span>
+</div>
+<div id="root"></div>
+<script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<script type="text/babel" data-presets="react">
+const { useState, useMemo, useEffect, useRef, useCallback } = React;
+
+
+// ════════════════════════════════════════════════════════════
+// DATOS — Contrato Boutique Aura (RMG, retail)
+// ════════════════════════════════════════════════════════════
+const CT = {
+  tenant: "Inquilino de Majo",
+  initial: "I",
+  active: true,
+  id: 67,
+  loc: "Torre Majo Test · Piso 1, oficina 1",
+  period: "May 2026 — Jun 2029",
+  startDate: "2026-06-01",
+  endDate: "2029-06-02",
+  // Datos que viven en "Información General" — NO se replican aquí
+  scheme: "minimum_guaranteed",  // fixed | variable | minimum_guaranteed
+  pct: 5,
+  rentBase: 180000,
+  reportingDays: 15,
+  publicLink: "https://app.colossu.com/rv/report/a7b3c9...",
+};
+
+// Cargos recurrentes — fuente unificada para Reglas del contrato
+// origin: "contract" = del wizard del contrato | "manual_recurring" = desde Registrar cargo | "auto_variable" = RV
+const RECURRING_CHARGES = [
+  { id: "rc-1", concept: "Renta",          amount: 180000, frequency: "monthly", dueDay: 1,  startDate: "2026-06-01", endDate: "2029-06-02", origin: "contract",       active: true,  ocr: 98 },
+  { id: "rc-2", concept: "Mantenimiento",  amount: 12000,  frequency: "monthly", dueDay: 1,  startDate: "2026-06-01", endDate: "2029-06-02", origin: "contract",       active: true,  ocr: 86 },
+  { id: "rc-3", concept: "Diferencial RV", amount: null,   frequency: "monthly", dueDay: 15, startDate: "2026-07-15", endDate: "2029-07-15", origin: "auto_variable",  active: true,  ocr: null, note: "Calculado por reporte de ventas" },
+  { id: "rc-4", concept: "Estacionamiento (2 cajones)", amount: 4500, frequency: "monthly", dueDay: 1, startDate: "2026-06-01", endDate: "2029-06-02", origin: "manual_recurring", active: true, ocr: null, createdBy: "Nacho", createdAt: "2026-05-28" },
+];
+
+// Billing records (lista plana, agrupable por concepto)
+// IMPORTANTE: Diferencial RV se genera SIEMPRE, monto $0 cuando no supera (Nacho dixit)
+const BILLING_INIT = (() => {
+  const out = [];
+  // 12 meses: Jun 2026 - May 2027 (mostraremos vista 2026)
+  const months2026 = ["06", "07", "08", "09", "10", "11", "12"];
+  const months2027 = ["01", "02", "03", "04", "05"];
+  let id = 100;
+  const addRow = (concept, period, total, paid, pending, status, extra = {}) =>
+    out.push({ id: id++, concept, period, date: `${period}-01`, total, paid, pending, status, ...extra });
+
+  // Renta (todos los meses generados)
+  months2026.forEach((m, i) => {
+    if (i === 0) addRow("Renta", `2026-${m}`, 180000, 180000, 0, "paid");
+    else if (i === 1) addRow("Renta", `2026-${m}`, 180000, 180000, 0, "paid");
+    else if (i === 2) addRow("Renta", `2026-${m}`, 180000, 0, 180000, "overdue");
+    else if (i === 3) addRow("Renta", `2026-${m}`, 180000, 0, 180000, "due_soon");
+    else addRow("Renta", `2026-${m}`, 180000, 0, 180000, "projected");
+  });
+  months2027.forEach((m) => addRow("Renta", `2027-${m}`, 180000, 0, 180000, "projected"));
+
+  // Mantenimiento
+  months2026.forEach((m, i) => {
+    if (i < 2) addRow("Mantenimiento", `2026-${m}`, 12000, 12000, 0, "paid");
+    else if (i === 2) addRow("Mantenimiento", `2026-${m}`, 12000, 0, 12000, "overdue");
+    else if (i === 3) addRow("Mantenimiento", `2026-${m}`, 12000, 0, 12000, "due_soon");
+    else addRow("Mantenimiento", `2026-${m}`, 12000, 0, 12000, "projected");
+  });
+  months2027.forEach((m) => addRow("Mantenimiento", `2027-${m}`, 12000, 0, 12000, "projected"));
+
+  // Estacionamiento (manual recurring)
+  months2026.forEach((m, i) => {
+    if (i < 2) addRow("Estacionamiento (2 cajones)", `2026-${m}`, 4500, 4500, 0, "paid", { isManual: true });
+    else if (i === 2) addRow("Estacionamiento (2 cajones)", `2026-${m}`, 4500, 0, 4500, "overdue", { isManual: true });
+    else if (i === 3) addRow("Estacionamiento (2 cajones)", `2026-${m}`, 4500, 0, 4500, "due_soon", { isManual: true });
+    else addRow("Estacionamiento (2 cajones)", `2026-${m}`, 4500, 0, 4500, "projected", { isManual: true });
+  });
+
+  // Diferencial RV (SIEMPRE generado, monto $0 si no supera, monto = excedente si supera)
+  // Cada uno referencia el periodo de ventas que cubre (mes anterior al cobro)
+  // Jun: ventas May $2.5M → 5% = $125K < $180K RMG → diferencial $0
+  addRow("Diferencial RV", "2026-06", 0, 0, 0, "closed_no_overage", { isExc: true, refPeriod: "May 2026", salesAmt: 2500000, salesPct: 125000, supera: false });
+  // Jul: ventas Jun $4M → 5% = $200K > $180K → diferencial $20K (pagado)
+  addRow("Diferencial RV", "2026-07", 20000, 20000, 0, "paid", { isExc: true, refPeriod: "Jun 2026", salesAmt: 4000000, salesPct: 200000, supera: true });
+  // Ago: ventas Jul reportadas, pendiente aprobación
+  addRow("Diferencial RV", "2026-08", 50000, 0, null, "pending_review", { isExc: true, refPeriod: "Jul 2026", salesAmt: 4600000, salesPct: 230000, supera: true });
+  // Sep en adelante: pending_submission (placeholder con $0, NO suma a saldos)
+  ["09", "10", "11", "12"].forEach((m) => addRow("Diferencial RV", `2026-${m}`, null, 0, null, "pending_submission", { isExc: true, refPeriod: `${m === "09" ? "Ago" : m === "10" ? "Sep" : m === "11" ? "Oct" : "Nov"} 2026` }));
+  months2027.forEach((m, i) => {
+    const refMo = ["Dic 2026", "Ene 2027", "Feb 2027", "Mar 2027", "Abr 2027"][i];
+    addRow("Diferencial RV", `2027-${m}`, null, 0, null, "pending_submission", { isExc: true, refPeriod: refMo });
+  });
+
+  // Depósito (solo una vez al inicio)
+  addRow("Depósito", "2026-06", 360000, 360000, 0, "paid");
+
+  return out;
+})();
+
+// ════════════════════════════════════════════════════════════
+// Helpers
+// ════════════════════════════════════════════════════════════
+const $f = (n) => n == null ? "—" : `$${Math.round(n).toLocaleString("es-MX")}`;
+const $fk = (n) => n == null ? "—" : n >= 1e6 ? `$${(n/1e6).toFixed(1)}M` : n >= 1000 ? `$${(n/1000).toFixed(0)}K` : `$${n}`;
+
+const MONTH_LABEL = { "01": "Ene", "02": "Feb", "03": "Mar", "04": "Abr", "05": "May", "06": "Jun", "07": "Jul", "08": "Ago", "09": "Sep", "10": "Oct", "11": "Nov", "12": "Dic" };
+
+const STATUS = {
+  paid:                { bg: "#EAF7EE", fg: "#1F8546", label: "Pagado",     timelineBg: "#1F8546" },
+  partial:             { bg: "#F3E5F5", fg: "#7B1FA2", label: "Parcial",    timelineBg: "#9C27B0" },
+  due_soon:            { bg: "#EBF4FB", fg: "#2563EB", label: "Por vencer", timelineBg: "#FFA726" },
+  projected:           { bg: "#EBF4FB", fg: "#2563EB", label: "En cobranza",timelineBg: "#B0BEC5" },
+  overdue:             { bg: "#FBEAE9", fg: "#C62828", label: "En mora",    timelineBg: "#E53935" },
+  pending_submission:  { bg: "#FFF4E5", fg: "#B26500", label: "Pend. reporte", timelineBg: "#FFB74D" },
+  pending_review:      { bg: "#FEF3C7", fg: "#92400E", label: "Por aprobar",   timelineBg: "#F57C00" },
+  closed_no_overage:   { bg: "#F4F4F5", fg: "#71717A", label: "Sin diferencial", timelineBg: "#CFD8DC" },
+  cancelled:           { bg: "#F4F4F5", fg: "#71717A", label: "Cancelado",  timelineBg: "#E0E0E0" },
+};
+
+// Estados específicos de REPORTES DE VENTAS (no confundir con cargos)
+const VENTAS_STATUS = {
+  pendiente: { bg: "#FFF4E5", fg: "#B26500", label: "Pendiente" },           // inquilino aún no reporta
+  reportado: { bg: "#FEF3C7", fg: "#92400E", label: "Reportado" },           // hay datos, falta aprobación
+  aprobado:  { bg: "#EAF7EE", fg: "#1F8546", label: "Aprobado" },            // validado, cargo generado o cerrado
+  rechazado: { bg: "#FBEAE9", fg: "#C62828", label: "Rechazado" },           // se pidió corrección
+};
+
+// Mapea el status de un periodo al status de venta visible
+function mapToVentaStatus(period) {
+  if (period.status === "pending_submission") return "pendiente";
+  if (period.status === "pending_review")     return "reportado";
+  if (period.status === "rejected")           return "rechazado";
+  return "aprobado"; // paid, due_soon, projected, closed_no_overage, charge_generated
+}
+
+const ORIGIN_LABEL = {
+  contract:         { label: "Contrato",   bg: "#EFF6FF", fg: "#1E40AF" },
+  auto_variable:    { label: "Auto (RV)",  bg: "#EEF2FF", fg: "#4338CA" },
+  manual_recurring: { label: "Manual",     bg: "#FAF5FF", fg: "#7E22CE" },
+};
+
+function Badge({ status, small }) {
+  const s = STATUS[status] || STATUS.projected;
+  return (
+    <span style={{ display: "inline-block", padding: small ? "2px 7px" : "3px 10px", borderRadius: 4, background: s.bg, color: s.fg, fontSize: small ? 10 : 11, fontWeight: 500, whiteSpace: "nowrap" }}>
+      {s.label}
+    </span>
+  );
+}
+
+function OriginBadge({ origin }) {
+  const o = ORIGIN_LABEL[origin] || ORIGIN_LABEL.contract;
+  return (
+    <span style={{ display: "inline-block", padding: "2px 7px", borderRadius: 4, background: o.bg, color: o.fg, fontSize: 10, fontWeight: 600, letterSpacing: ".2px" }}>
+      {o.label}
+    </span>
+  );
+}
+
+// ════════════════════════════════════════════════════════════
+// App
+// ════════════════════════════════════════════════════════════
+function App() {
+  const [mainTab, setMainTab] = useState("cobranza"); // info | historico | cobranza | documentos
+  const [subTab, setSubTab] = useState("timeline");   // timeline | estado | reglas
+  const [billing, setBilling] = useState(BILLING_INIT);
+  const [estadoFilter, setEstadoFilter] = useState("todos");
+  const [editingId, setEditingId] = useState(null);
+  const [editValue, setEditValue] = useState("");
+
+  // KPIs — SOLO operativos. Excluyen pending_review y pending_submission (affects_ar = false)
+  const kpis = useMemo(() => {
+    const totalCobrado = billing.reduce((s, r) => s + (r.paid || 0), 0);
+    const pendienteVencer = billing
+      .filter(r => r.status === "due_soon")
+      .reduce((s, r) => s + (r.pending || 0), 0);
+    const enMora = billing
+      .filter(r => r.status === "overdue")
+      .reduce((s, r) => s + (r.pending || 0), 0);
+    const diferencialesPorAprobar = billing.filter(r => r.status === "pending_review").length;
+    const diferencialesPorAprobarMonto = billing.filter(r => r.status === "pending_review").reduce((s, r) => s + (r.total || 0), 0);
+    const reportesPendientes = billing.filter(r => r.status === "pending_submission").length;
+    return { totalCobrado, pendienteVencer, enMora, diferencialesPorAprobar, diferencialesPorAprobarMonto, reportesPendientes };
+  }, [billing]);
+
+  return (
+    <div style={{ fontFamily: "'DM Sans', -apple-system, sans-serif", background: "#FAFAFB", minHeight: "100vh", color: "#1A1A1A" }}>
+      <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+
+      {/* ════════════════ Header global del contrato ════════════════ */}
+      <div style={{ background: "white", padding: "16px 28px 0", borderBottom: "1px solid #ECECEE" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 12 }}>
+          <div>
+            <h1 style={{ fontSize: 20, fontWeight: 700, margin: 0, color: "#111" }}>Contrato #{CT.id}</h1>
+            <div style={{ fontSize: 13, color: "#6B6B6F", marginTop: 2 }}>{CT.tenant}</div>
+          </div>
+          <div style={{ display: "flex", gap: 8 }}>
+            <button style={{ padding: "8px 14px", background: "white", color: "#6B6B6F", border: "1px solid #E5E5E7", borderRadius: 8, fontSize: 12, fontWeight: 500, cursor: "pointer", fontFamily: "inherit" }}>
+              ⬇ Descargar contrato
+            </button>
+            <button style={{ padding: "8px 14px", background: "#2563EB", color: "white", border: "none", borderRadius: 8, fontSize: 12, fontWeight: 500, cursor: "pointer", fontFamily: "inherit" }}>
+              ✎ Editar contrato
+            </button>
+          </div>
+        </div>
+
+        {/* Tabs principales — ya existentes en la app */}
+        <div style={{ display: "flex", gap: 4 }}>
+          {[
+            { k: "info",        l: "Información General" },
+            { k: "historico",   l: "Histórico" },
+            { k: "cobranza",    l: "📄 Cobranza" },
+            { k: "documentos",  l: "Documentos" },
+          ].map(t => (
+            <button key={t.k} onClick={() => setMainTab(t.k)} style={{
+              padding: "9px 14px", border: "none",
+              background: mainTab === t.k ? "#F4F4F5" : "transparent",
+              borderRadius: "8px 8px 0 0",
+              fontSize: 12.5, fontWeight: mainTab === t.k ? 600 : 500,
+              color: mainTab === t.k ? "#111" : "#6B6B6F",
+              cursor: "pointer", fontFamily: "inherit", marginBottom: -1,
+            }}>
+              {t.l}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* ════════════════ Contenido por tab ════════════════ */}
+      {mainTab === "info" && <InformacionGeneral />}
+      {mainTab === "historico" && <PlaceholderTab name="Histórico" desc="Cadena de revisiones del contrato. Al clickear una revisión abre su detalle — NO duplica info inline." />}
+      {mainTab === "documentos" && <PlaceholderTab name="Documentos" desc="Archivos relacionados al contrato." />}
+
+      {mainTab === "cobranza" && (
+        <CobranzaTab
+          subTab={subTab} setSubTab={setSubTab}
+          billing={billing} setBilling={setBilling}
+          kpis={kpis}
+          estadoFilter={estadoFilter} setEstadoFilter={setEstadoFilter}
+          editingId={editingId} setEditingId={setEditingId}
+          editValue={editValue} setEditValue={setEditValue}
+        />
+      )}
+    </div>
+  );
+}
+
+// ════════════════════════════════════════════════════════════
+// Placeholder para tabs que no estamos diseñando ahora
+// ════════════════════════════════════════════════════════════
+function PlaceholderTab({ name, desc }) {
+  return (
+    <div style={{ padding: 28 }}>
+      <div style={{ background: "white", border: "1px solid #ECECEE", borderRadius: 10, padding: 32, textAlign: "center" }}>
+        <div style={{ fontSize: 14, fontWeight: 700, color: "#111", marginBottom: 8 }}>{name}</div>
+        <div style={{ fontSize: 12, color: "#6B6B6F", maxWidth: 560, margin: "0 auto", lineHeight: 1.6 }}>{desc}</div>
+      </div>
+    </div>
+  );
+}
+
+// ════════════════════════════════════════════════════════════
+// INFORMACIÓN GENERAL — fuente única de verdad del contrato
+// ════════════════════════════════════════════════════════════
+function InformacionGeneral() {
+  // Datos extendidos del contrato (lo que normalmente vendría de la BD)
+  const info = {
+    // Inquilino
+    company: "Inquilino de Majo",
+    rfc: "IMA240515P21",
+    legalName: "Inquilino de Majo S.A. de C.V.",
+    contactName: "Leonardo Bonacci",
+    contactEmail: "filius.bonacci@pisa.no",
+    contactPhone: "+52 55 3581 3213",
+    vertical: "Retail / Boutique",
+    // Espacio
+    complex: "Torre Majo Test",
+    floor: "Piso 1",
+    space: "Oficina 1",
+    area: 120,
+    useType: "Comercial / Retail",
+    // Vigencia
+    startDate: "01 Jun 2026",
+    endDate: "02 Jun 2029",
+    plazoMonths: 36,
+    daysRemaining: 1096,
+    advancePct: 0,
+    // Términos financieros
+    currency: "MXN",
+    rentScheme: "Mínima garantizada (RMG)",
+    rentBase: 180000,
+    pct: 5,
+    reportingDays: 15,
+    maintenance: 12000,
+    // Garantías
+    incrementType: "Índice Nacional de Precios al Consumidor (INPC)",
+    incrementFrequency: "Anual",
+    nextIncrement: "01 Jun 2027",
+    deposito: 360000,
+    depositoStatus: "Retenido",
+    depositoMeses: 2,
+    advanceMonths: 0,
+    // Valor del contrato
+    totalRenta: 180000 * 36,
+    totalManto: 12000 * 36,
+    // Documentos clave
+    documents: [
+      { name: "Contrato original.pdf", size: "2.4 MB", date: "31 May 2026" },
+      { name: "Anexo A — Política de horarios.pdf", size: "180 KB", date: "31 May 2026" },
+      { name: "Carta responsabilidad inquilino.pdf", size: "92 KB", date: "31 May 2026" },
+    ],
+  };
+
+  return (
+    <div style={{ padding: "20px 28px" }}>
+      {/* Header del contrato (mismo lenguaje que Cobranza) */}
+      <div style={{ marginBottom: 16 }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            <div style={{ width: 30, height: 30, borderRadius: "50%", background: "#E5E5E7", color: "#6B6B6F", fontSize: 13, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center" }}>
+              {CT.initial}
+            </div>
+            <h2 style={{ fontSize: 16, fontWeight: 700, color: "#111", margin: 0 }}>{info.company}</h2>
+            <span style={{ padding: "2px 9px", background: "#EAF7EE", color: "#1F8546", fontSize: 10, fontWeight: 600, borderRadius: 4 }}>Activo</span>
+            <span style={{ padding: "2px 9px", background: "#EEF2FF", color: "#4338CA", fontSize: 10, fontWeight: 600, borderRadius: 4 }}>RMG + {info.pct}%</span>
+          </div>
+        </div>
+        <div style={{ display: "flex", gap: 14, fontSize: 11, color: "#9CA3AF", marginLeft: 42 }}>
+          <span># ID {CT.id}</span>
+          <span>🏢 {info.complex} · {info.floor}, {info.space}</span>
+          <span>📅 {info.startDate} — {info.endDate}</span>
+        </div>
+      </div>
+
+      {/* Resumen ejecutivo — banner sobrio con lo más crítico */}
+      <div style={{
+        background: "white", border: "1px solid #ECECEE", borderRadius: 10, padding: "16px 20px", marginBottom: 14,
+        display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 0,
+      }}>
+        <ResumenItem label="Tipo de renta"      value="Mínima garantizada" sub={`RMG + ${info.pct}% sobre ventas`} />
+        <ResumenItem label="% sobre ventas"     value={`${info.pct}%`} sub="Aplicado a ventas netas reportadas" divider />
+        <ResumenItem label="Renta base mensual" value={`$${info.rentBase.toLocaleString("es-MX")}`} sub={`${info.currency} · sin IVA`} divider />
+        <ResumenItem label="Valor del contrato" value={`$${((info.totalRenta + info.totalManto) / 1e6).toFixed(2)}M`} sub={`${info.plazoMonths} meses · ${info.daysRemaining} días restantes`} divider />
+      </div>
+
+      {/* SECCIÓN 1: Datos del inquilino */}
+      <InfoSection title="Datos del inquilino">
+        <InfoField label="Razón social"          value={info.legalName} />
+        <InfoField label="Nombre comercial"      value={info.company} />
+        <InfoField label="RFC"                   value={info.rfc} mono />
+        <InfoField label="Vertical / Industria"  value={info.vertical} />
+        <InfoField label="Contacto principal"    value={info.contactName} />
+        <InfoField label="Email"                 value={info.contactEmail} />
+        <InfoField label="Teléfono"              value={info.contactPhone} />
+      </InfoSection>
+
+      {/* SECCIÓN 2: Espacio rentado */}
+      <InfoSection title="Espacio rentado">
+        <InfoField label="Complejo / Activo" value={info.complex} />
+        <InfoField label="Nivel"             value={info.floor} />
+        <InfoField label="Espacio"           value={info.space} />
+        <InfoField label="Área rentada"      value={`${info.area} m²`} />
+        <InfoField label="Uso permitido"     value={info.useType} />
+      </InfoSection>
+
+      {/* SECCIÓN 3: Vigencia */}
+      <InfoSection title="Vigencia">
+        <InfoField label="Fecha de inicio"   value={info.startDate} />
+        <InfoField label="Fecha de fin"      value={info.endDate} />
+        <InfoField label="Plazo contratado"  value={`${info.plazoMonths} meses`} />
+        <InfoField label="Días transcurridos" value="0 días" sub="Contrato recién iniciado" />
+        <InfoField label="Días restantes"    value={`${info.daysRemaining} días`} />
+        <InfoField label="Avance"            value={`${info.advancePct}%`} />
+      </InfoSection>
+
+      {/* SECCIÓN 4: Términos financieros — fuente única */}
+      <InfoSection title="Términos financieros del esquema de renta">
+        <InfoField label="Moneda"                    value={info.currency} />
+        <InfoField label="Tipo de renta"             value={info.rentScheme} tag={`RMG + ${info.pct}%`} />
+        <InfoField label="Renta mínima garantizada"  value={`$${info.rentBase.toLocaleString("es-MX")}`} sub="MXN sin IVA · mensual" />
+        <InfoField label="% sobre ventas netas"      value={`${info.pct}%`} sub="aplicado a ventas netas" />
+        <InfoField label="Días para reportar ventas" value={`${info.reportingDays} días`} sub="tras cierre del mes" />
+        <InfoField label="Cobro del diferencial"     value="Siguiente ciclo" sub="overage_due_rule = next_cycle" />
+      </InfoSection>
+
+      {/* SECCIÓN 4.5: Cargos recurrentes activos */}
+      <div style={{ background: "white", border: "1px solid #ECECEE", borderRadius: 10, marginBottom: 14, overflow: "hidden" }}>
+        <div style={{ padding: "14px 18px", borderBottom: "1px solid #F4F4F5" }}>
+          <div style={{ fontSize: 13, fontWeight: 700, color: "#111" }}>Cargos recurrentes activos</div>
+          <div style={{ fontSize: 11, color: "#6B6B6F", marginTop: 2 }}>
+            Todos los cargos que generan billing records mes a mes. Para modificarlos, usa <strong>Editar contrato</strong> arriba.
+          </div>
+        </div>
+        <div style={{
+          display: "grid", gridTemplateColumns: "1.6fr .9fr .9fr .9fr 1fr",
+          padding: "10px 18px", background: "#FAFAFB", borderBottom: "1px solid #ECECEE",
+          fontSize: 10, fontWeight: 600, color: "#9CA3AF", textTransform: "uppercase", letterSpacing: ".3px",
+        }}>
+          <div>Concepto</div>
+          <div>Monto</div>
+          <div>Frecuencia</div>
+          <div>Día de cobro</div>
+          <div>Origen</div>
+        </div>
+        {RECURRING_CHARGES.map((rc, i) => (
+          <div key={rc.id} style={{
+            display: "grid", gridTemplateColumns: "1.6fr .9fr .9fr .9fr 1fr",
+            padding: "12px 18px", alignItems: "center",
+            borderBottom: i === RECURRING_CHARGES.length - 1 ? "none" : "1px solid #F4F4F5",
+          }}>
+            <div>
+              <div style={{ fontSize: 13, fontWeight: 500, color: "#111" }}>
+                {rc.concept}
+                {rc.ocr && (
+                  <span style={{ marginLeft: 6, fontSize: 9, fontWeight: 600, padding: "1px 5px", background: "#ECFDF5", color: "#065F46", borderRadius: 3, letterSpacing: ".3px" }}>
+                    OCR {rc.ocr}%
+                  </span>
+                )}
+              </div>
+              {rc.note && <div style={{ fontSize: 10, color: "#9CA3AF", marginTop: 2 }}>{rc.note}</div>}
+              {rc.createdBy && <div style={{ fontSize: 10, color: "#9CA3AF", marginTop: 2 }}>Creado por {rc.createdBy} · {rc.createdAt}</div>}
+            </div>
+            <div style={{ fontSize: 13, fontWeight: 500, color: "#111" }}>
+              {rc.amount == null ? <span style={{ color: "#9CA3AF" }}>variable</span> : `$${rc.amount.toLocaleString("es-MX")}`}
+            </div>
+            <div style={{ fontSize: 12, color: "#6B6B6F" }}>Mensual</div>
+            <div style={{ fontSize: 12, color: "#6B6B6F" }}>Día {rc.dueDay}</div>
+            <div><OriginBadge origin={rc.origin} /></div>
+          </div>
+        ))}
+      </div>
+
+      {/* SECCIÓN 4.6: Intereses moratorios */}
+      <InfoSection title="Intereses moratorios" subtitle="Política aplicada cuando un cargo entra en mora.">
+        <InfoField label="Día de facturación" value="1 del mes" />
+        <InfoField label="Tipo de interés" value="Tasa fija (%)" />
+        <InfoField label="Base del interés" value="Mensual" />
+        <InfoField label="Modo de generación" value="Automático" />
+        <InfoField label="¿Desde cuándo?" value="Desde el vencimiento" sub="sin moratorios aún" />
+        <InfoField label="Días de gracia" value="3 días" />
+      </InfoSection>
+
+      {/* SECCIÓN 5: Incrementos y garantías */}
+      <InfoSection title="Incrementos y garantías">
+        <InfoField label="Tipo de incremento"     value={info.incrementType} />
+        <InfoField label="Periodicidad"           value={info.incrementFrequency} />
+        <InfoField label="Próximo incremento"     value={info.nextIncrement} sub="proyectado" />
+        <InfoField label="Depósito en garantía"   value={`$${info.deposito.toLocaleString("es-MX")}`} sub={`${info.depositoMeses} meses de RMG · ${info.depositoStatus}`} />
+        <InfoField label="Meses adelantados"      value={info.advanceMonths > 0 ? `${info.advanceMonths} meses` : "—"} sub={info.advanceMonths > 0 ? `Equivale a ${info.advanceMonths * info.rentBase} MXN` : "Sin renta adelantada"} />
+      </InfoSection>
+
+      {/* SECCIÓN 6: Valor proyectado del contrato */}
+      <InfoSection title="Valor proyectado del contrato" subtitle="Cálculo determinístico sin diferenciales variables ni incrementos por INPC.">
+        <InfoField label="Renta total proyectada" value={`$${info.totalRenta.toLocaleString("es-MX")}`} sub={`${info.plazoMonths} × $${info.rentBase.toLocaleString("es-MX")}`} />
+        <InfoField label="Mantenimiento proyectado" value={`$${info.totalManto.toLocaleString("es-MX")}`} sub={`${info.plazoMonths} × $${info.maintenance.toLocaleString("es-MX")}`} />
+        <InfoField label="Valor total estimado" value={`$${(info.totalRenta + info.totalManto).toLocaleString("es-MX")}`} sub="No incluye diferenciales RV ni INPC" emphasis />
+      </InfoSection>
+
+      {/* SECCIÓN 7: Documentos clave */}
+      <div style={{ background: "white", border: "1px solid #ECECEE", borderRadius: 10, overflow: "hidden" }}>
+        <div style={{ padding: "14px 18px", borderBottom: "1px solid #F4F4F5", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <div>
+            <div style={{ fontSize: 13, fontWeight: 700, color: "#111" }}>Documentos clave</div>
+            <div style={{ fontSize: 11, color: "#6B6B6F", marginTop: 2 }}>Resumen rápido. Todos los archivos están en la pestaña Documentos.</div>
+          </div>
+          <button style={{ padding: "6px 12px", background: "white", border: "1px solid #E5E5E7", borderRadius: 6, fontSize: 11, color: "#6B6B6F", cursor: "pointer", fontFamily: "inherit" }}>
+            Ver todos →
+          </button>
+        </div>
+        {info.documents.map((d, i) => (
+          <div key={d.name} style={{
+            display: "grid", gridTemplateColumns: "1fr .4fr .4fr 80px",
+            padding: "11px 18px", alignItems: "center",
+            borderBottom: i === info.documents.length - 1 ? "none" : "1px solid #F4F4F5",
+            fontSize: 12.5, color: "#1A1A1A",
+          }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <span style={{ fontSize: 14 }}>📄</span>
+              <span style={{ fontWeight: 500 }}>{d.name}</span>
+            </div>
+            <div style={{ color: "#9CA3AF", fontSize: 11 }}>{d.size}</div>
+            <div style={{ color: "#9CA3AF", fontSize: 11 }}>{d.date}</div>
+            <div style={{ textAlign: "right" }}>
+              <button style={{ padding: "3px 8px", background: "white", border: "1px solid #E5E5E7", borderRadius: 5, fontSize: 10.5, color: "#6B6B6F", cursor: "pointer", fontFamily: "inherit" }}>
+                ⬇ Ver
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function ResumenItem({ label, value, sub, divider }) {
+  return (
+    <div style={{ borderLeft: divider ? "1px solid #ECECEE" : "none", paddingLeft: divider ? 20 : 0 }}>
+      <div style={{ fontSize: 11, color: "#6B6B6F", marginBottom: 4 }}>{label}</div>
+      <div style={{ fontSize: 20, fontWeight: 700, color: "#111", lineHeight: 1 }}>{value}</div>
+      {sub && <div style={{ fontSize: 11, color: "#9CA3AF", marginTop: 6 }}>{sub}</div>}
+    </div>
+  );
+}
+
+function InfoSection({ title, subtitle, children }) {
+  return (
+    <div style={{ background: "white", border: "1px solid #ECECEE", borderRadius: 10, marginBottom: 14, overflow: "hidden" }}>
+      <div style={{ padding: "14px 18px", borderBottom: "1px solid #F4F4F5" }}>
+        <div style={{ fontSize: 13, fontWeight: 700, color: "#111" }}>{title}</div>
+        {subtitle && <div style={{ fontSize: 11, color: "#6B6B6F", marginTop: 2 }}>{subtitle}</div>}
+      </div>
+      <div style={{ padding: 16, display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12 }}>
+        {children}
+      </div>
+    </div>
+  );
+}
+
+function InfoField({ label, value, sub, tag, mono, emphasis }) {
+  return (
+    <div style={{ padding: "10px 12px", background: "#FAFAFB", border: "1px solid #ECECEE", borderRadius: 6 }}>
+      <div style={{ fontSize: 10, color: "#6B6B6F", textTransform: "uppercase", letterSpacing: ".4px", marginBottom: 4, fontWeight: 600 }}>{label}</div>
+      <div style={{
+        fontSize: emphasis ? 16 : 13.5,
+        color: emphasis ? "#1F8546" : "#111",
+        fontWeight: emphasis ? 700 : 600,
+        fontFamily: mono ? "ui-monospace, monospace" : "inherit",
+      }}>
+        {value}
+      </div>
+      {tag && (
+        <div style={{ display: "inline-block", marginTop: 4, padding: "2px 7px", background: "#EEF2FF", color: "#4338CA", fontSize: 10, fontWeight: 600, borderRadius: 4 }}>
+          {tag}
+        </div>
+      )}
+      {sub && <div style={{ fontSize: 10, color: "#9CA3AF", marginTop: 3 }}>{sub}</div>}
+    </div>
+  );
+}
+
+// ════════════════════════════════════════════════════════════
+// COBRANZA — tab principal
+// ════════════════════════════════════════════════════════════
+function CobranzaTab({ subTab, setSubTab, billing, setBilling, kpis, estadoFilter, setEstadoFilter, editingId, setEditingId, editValue, setEditValue }) {
+  return (
+    <div style={{ padding: "20px 28px" }}>
+      {/* Header de Cobranza — solo info operativa, NO duplica Info General */}
+      <div style={{ marginBottom: 16 }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            <div style={{ width: 30, height: 30, borderRadius: "50%", background: "#E5E5E7", color: "#6B6B6F", fontSize: 13, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center" }}>
+              {CT.initial}
+            </div>
+            <h2 style={{ fontSize: 16, fontWeight: 700, color: "#111", margin: 0 }}>{CT.tenant}</h2>
+            <span style={{ padding: "2px 9px", background: "#EAF7EE", color: "#1F8546", fontSize: 10, fontWeight: 600, borderRadius: 4 }}>Activo</span>
+            <span style={{ padding: "2px 9px", background: "#EEF2FF", color: "#4338CA", fontSize: 10, fontWeight: 600, borderRadius: 4 }}>RMG + {CT.pct}%</span>
+          </div>
+          <button style={{ padding: "8px 16px", background: "#1F1F23", color: "white", border: "none", borderRadius: 8, fontSize: 12, fontWeight: 500, cursor: "pointer", fontFamily: "inherit" }}>
+            + Registrar cargo
+          </button>
+        </div>
+        <div style={{ display: "flex", gap: 14, fontSize: 11, color: "#9CA3AF", marginLeft: 42 }}>
+          <span># ID {CT.id}</span>
+          <span>🏢 {CT.loc}</span>
+          <span>📅 {CT.period}</span>
+        </div>
+      </div>
+
+      {/* KPIs — solo operativos. Renta base / Incremento / Depósito viven en Info General */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12, marginBottom: 20 }}>
+        <Kpi label="Total cobrado"          value={`${$f(kpis.totalCobrado)} MXN`}        color="#1F8546" icon="✓" sub="Suma de pagos confirmados" />
+        <Kpi label="Pendiente por vencer"   value={`${$f(kpis.pendienteVencer)} MXN`}    color="#B26500" icon="○" sub="Saldos próximos a vencer (5d)" />
+        <Kpi label="Saldo en mora"          value={`${$f(kpis.enMora)} MXN`}             color="#C62828" icon="!" sub="Con vencimiento anterior a hoy" />
+        <Kpi label="Diferenciales por aprobar"
+             value={kpis.diferencialesPorAprobar > 0 ? `${$f(kpis.diferencialesPorAprobarMonto)} MXN` : "$0 MXN"}
+             color="#4338CA" icon="⏵"
+             sub={kpis.diferencialesPorAprobar > 0 ? `${kpis.diferencialesPorAprobar} reporte${kpis.diferencialesPorAprobar > 1 ? "s" : ""} en revisión` : "Sin pendientes"} />
+      </div>
+
+      {/* Sub-tabs */}
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid #E5E5E7", marginBottom: 18 }}>
+        <div style={{ display: "flex", gap: 4 }}>
+          {[
+            { k: "timeline", l: "📅 Línea de tiempo" },
+            { k: "estado",   l: "📄 Cargos" },
+            { k: "ventas",   l: "💰 Ventas", special: true },
+          ].map(t => (
+            <button key={t.k} onClick={() => setSubTab(t.k)} style={{
+              padding: "10px 14px", border: "none", background: "transparent",
+              fontSize: 13, fontWeight: subTab === t.k ? 600 : 500,
+              color: subTab === t.k ? "#111" : "#6B6B6F",
+              borderBottom: subTab === t.k ? "2px solid #111" : "2px solid transparent",
+              marginBottom: -1, cursor: "pointer", fontFamily: "inherit",
+              display: "flex", alignItems: "center", gap: 6,
+            }}>
+              {t.l}
+              {t.special && (kpis.reportesPendientes > 0 || kpis.diferencialesPorAprobar > 0) && (
+                <span style={{ background: "#FFF4E5", color: "#B26500", padding: "1px 6px", borderRadius: 8, fontSize: 10, fontWeight: 700 }}>
+                  {kpis.reportesPendientes + kpis.diferencialesPorAprobar}
+                </span>
+              )}
+            </button>
+          ))}
+        </div>
+        <button style={{ padding: "7px 14px", background: "white", border: "1px solid #E5E5E7", borderRadius: 8, fontSize: 12, color: "#6B6B6F", cursor: "pointer", fontFamily: "inherit", display: "flex", alignItems: "center", gap: 6 }}>
+          <span>⬇</span> Exportar
+        </button>
+      </div>
+
+      {subTab === "timeline" && <TimelineByConcept billing={billing} />}
+      {subTab === "estado" && (
+        <EstadoCuenta
+          billing={billing} setBilling={setBilling}
+          filter={estadoFilter} setFilter={setEstadoFilter}
+        />
+      )}
+      {subTab === "ventas" && <VentasTab billing={billing} setBilling={setBilling} />}
+    </div>
+  );
+}
+
+// ════════════════════════════════════════════════════════════
+// KPI Card
+// ════════════════════════════════════════════════════════════
+function Kpi({ label, value, color, icon, sub }) {
+  return (
+    <div style={{ background: "white", border: "1px solid #ECECEE", borderRadius: 10, padding: "16px 20px" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+        <div style={{ fontSize: 12, color: "#6B6B6F" }}>{label}</div>
+        <div style={{ width: 18, height: 18, borderRadius: "50%", border: `1.5px solid ${color}`, color, fontSize: 10, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", opacity: .5 }}>
+          {icon}
+        </div>
+      </div>
+      <div style={{ fontSize: 22, fontWeight: 700, color, marginTop: 10, lineHeight: 1 }}>{value}</div>
+      <div style={{ fontSize: 11, color: "#9CA3AF", marginTop: 8 }}>{sub}</div>
+    </div>
+  );
+}
+
+// ════════════════════════════════════════════════════════════
+// 1. LÍNEA DE TIEMPO — agrupada por concepto
+// ════════════════════════════════════════════════════════════
+function TimelineByConcept({ billing }) {
+  const [year, setYear] = useState(2026);
+
+  const concepts = useMemo(() => {
+    const order = ["Renta", "Mantenimiento", "Estacionamiento (2 cajones)", "Diferencial RV", "Depósito"];
+    const grouped = {};
+    billing.forEach(b => {
+      if (!b.period.startsWith(String(year))) return;
+      if (!grouped[b.concept]) grouped[b.concept] = {};
+      const month = b.period.split("-")[1];
+      grouped[b.concept][month] = b;
+    });
+    return order.filter(c => grouped[c]).map(c => ({ name: c, byMonth: grouped[c] }));
+  }, [billing, year]);
+
+  const months = ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12"];
+
+  return (
+    <div style={{ background: "white", border: "1px solid #ECECEE", borderRadius: 10, padding: "16px 20px 20px" }}>
+      {/* Header con navegación de año y leyenda */}
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <button onClick={() => setYear(y => y - 1)} style={{ width: 24, height: 24, border: "1px solid #E5E5E7", background: "white", borderRadius: 5, cursor: "pointer", fontSize: 11, color: "#6B6B6F" }}>‹</button>
+          <span style={{ fontSize: 14, fontWeight: 700, color: "#111" }}>{year}</span>
+          <button onClick={() => setYear(y => y + 1)} style={{ width: 24, height: 24, border: "1px solid #E5E5E7", background: "white", borderRadius: 5, cursor: "pointer", fontSize: 11, color: "#6B6B6F" }}>›</button>
+        </div>
+        <div style={{ display: "flex", gap: 12, fontSize: 10, color: "#6B6B6F" }}>
+          <Legend color="#1F8546" label="Pagado" />
+          <Legend color="#9C27B0" label="Parcial" />
+          <Legend color="#E53935" label="Mora" />
+          <Legend color="#FFA726" label="Por vencer" />
+          <Legend color="#B0BEC5" label="Proyectado" />
+          <Legend color="#FFB74D" label="Pend. reporte" />
+          <Legend color="#F57C00" label="Por aprobar" />
+          <Legend color="#CFD8DC" label="Sin diferencial" />
+        </div>
+      </div>
+
+      {/* Header de meses */}
+      <div style={{
+        display: "grid", gridTemplateColumns: "180px repeat(12, 1fr)",
+        padding: "8px 0", borderBottom: "1px solid #ECECEE",
+        fontSize: 11, fontWeight: 600, color: "#6B6B6F", textTransform: "uppercase", letterSpacing: ".3px",
+      }}>
+        <div>Concepto</div>
+        {months.map(m => <div key={m} style={{ textAlign: "center" }}>{MONTH_LABEL[m]}</div>)}
+      </div>
+
+      {/* Filas por concepto */}
+      {concepts.map((c) => (
+        <div key={c.name} style={{
+          display: "grid", gridTemplateColumns: "180px repeat(12, 1fr)",
+          padding: "11px 0", borderBottom: "1px solid #F4F4F5", alignItems: "center",
+        }}>
+          <div style={{ fontSize: 12.5, fontWeight: 600, color: "#111" }}>
+            {c.name}
+            {c.name === "Diferencial RV" && (
+              <span style={{ display: "inline-block", marginLeft: 6, fontSize: 9, fontWeight: 600, padding: "1px 5px", background: "#EEF2FF", color: "#4338CA", borderRadius: 3, letterSpacing: ".3px", textTransform: "uppercase" }}>Auto</span>
+            )}
+          </div>
+          {months.map((m) => {
+            const cell = c.byMonth[m];
+            return <TimelineCell key={m} data={cell} />;
+          })}
+        </div>
+      ))}
+
+      {/* Footer note */}
+      <div style={{ marginTop: 14, padding: "10px 12px", background: "#FAFBFF", border: "1px solid #DBEAFE", borderRadius: 6, fontSize: 11, color: "#4338CA", lineHeight: 1.5 }}>
+        <strong>Nota:</strong> El Diferencial RV se genera automáticamente cada mes (siempre, con monto $0 cuando las ventas no superan la RMG). El motor de cobranza siempre tiene una fila por periodo — esto simplifica el modelo y elimina condicionales.
+      </div>
+    </div>
+  );
+}
+
+function Legend({ color, label }) {
+  return (
+    <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
+      <span style={{ width: 8, height: 8, borderRadius: 2, background: color }} />
+      {label}
+    </span>
+  );
+}
+
+function TimelineCell({ data }) {
+  if (!data) {
+    return <div style={{ textAlign: "center", fontSize: 11, color: "#DDD" }}>—</div>;
+  }
+  const s = STATUS[data.status] || STATUS.projected;
+  const isExcZero = data.concept === "Diferencial RV" && data.total === 0;
+  const isPendSub = data.status === "pending_submission";
+
+  // Para diferenciales con $0: muy discreto
+  if (isExcZero) {
+    return (
+      <div style={{ textAlign: "center" }}>
+        <div style={{ fontSize: 11, color: "#9CA3AF" }}>$0</div>
+      </div>
+    );
+  }
+  if (isPendSub) {
+    return (
+      <div style={{ textAlign: "center" }}>
+        <div style={{ fontSize: 10, color: s.fg, fontWeight: 500, padding: "3px 6px", border: `1px dashed ${s.timelineBg}`, borderRadius: 4, background: s.bg, display: "inline-block" }}>?</div>
+      </div>
+    );
+  }
+  if (data.total === null) {
+    return <div style={{ textAlign: "center", fontSize: 11, color: "#DDD" }}>—</div>;
+  }
+
+  return (
+    <div style={{ textAlign: "center" }}>
+      <div style={{
+        display: "inline-block", padding: "4px 8px", borderRadius: 4,
+        background: s.bg, color: s.fg, fontSize: 11, fontWeight: 600, border: `1px solid ${s.timelineBg}30`,
+      }}>
+        {$fk(data.total)}
+      </div>
+    </div>
+  );
+}
+
+// ════════════════════════════════════════════════════════════
+// 2. CARGOS — tabla plana idéntica al dashboard global
+// ════════════════════════════════════════════════════════════
+function EstadoCuenta({ billing, setBilling, filter, setFilter }) {
+  const [categoryFilter, setCategoryFilter] = useState("todos");
+  const [openMenuId, setOpenMenuId] = useState(null);
+
+  // Solo cargos reales en esta vista. Los estados de reporte (pending_submission, pending_review) viven en Ventas.
+  const cargos = useMemo(() => {
+    return billing.filter(r => !["pending_submission", "pending_review", "rejected"].includes(r.status));
+  }, [billing]);
+
+  const categoriesAvailable = useMemo(() => {
+    const set = new Set(cargos.map(r => r.concept));
+    return Array.from(set);
+  }, [cargos]);
+
+  const filtered = useMemo(() => {
+    let result = cargos;
+    if (filter === "pendientes") result = result.filter(r => ["due_soon", "projected"].includes(r.status));
+    else if (filter === "mora")  result = result.filter(r => r.status === "overdue");
+    else if (filter === "pagados") result = result.filter(r => r.status === "paid");
+    else if (filter === "parciales") result = result.filter(r => r.status === "partial");
+    if (categoryFilter !== "todos") result = result.filter(r => r.concept === categoryFilter);
+    return result.sort((a, b) => a.date.localeCompare(b.date));
+  }, [cargos, filter, categoryFilter]);
+
+  const counts = useMemo(() => ({
+    todos: cargos.length,
+    pendientes: cargos.filter(r => ["due_soon", "projected"].includes(r.status)).length,
+    mora: cargos.filter(r => r.status === "overdue").length,
+    pagados: cargos.filter(r => r.status === "paid").length,
+    parciales: cargos.filter(r => r.status === "partial").length,
+  }), [cargos]);
+
+  const conciliateRow = (rowId) => {
+    setBilling(billing.map(r => r.id === rowId ? { ...r, paid: r.total || 0, pending: 0, status: "paid" } : r));
+    setOpenMenuId(null);
+  };
+  const partialPay = (rowId) => {
+    setBilling(billing.map(r => {
+      if (r.id !== rowId) return r;
+      const half = Math.round((r.total || 0) / 2);
+      return { ...r, paid: half, pending: (r.total || 0) - half, status: "partial" };
+    }));
+    setOpenMenuId(null);
+  };
+
+  return (
+    <div style={{ background: "white", border: "1px solid #ECECEE", borderRadius: 10, overflow: "hidden" }}>
+      {/* Filtros + categoría */}
+      <div style={{ padding: "14px 18px 0", borderBottom: "1px solid #ECECEE", display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12 }}>
+        <div style={{ display: "flex", gap: 4, overflowX: "auto" }}>
+          {[
+            { k: "todos",      l: "Todos",      n: counts.todos },
+            { k: "pendientes", l: "Pendientes", n: counts.pendientes },
+            { k: "mora",       l: "En mora",    n: counts.mora, danger: true },
+            { k: "parciales",  l: "Parciales",  n: counts.parciales },
+            { k: "pagados",    l: "Pagados",    n: counts.pagados },
+          ].map(t => (
+            <button key={t.k} onClick={() => setFilter(t.k)} style={{
+              padding: "8px 14px", border: "none",
+              background: filter === t.k ? "#F4F4F5" : "transparent",
+              fontSize: 12, fontWeight: filter === t.k ? 600 : 500,
+              color: filter === t.k ? "#111" : "#6B6B6F",
+              borderRadius: "8px 8px 0 0", cursor: "pointer", fontFamily: "inherit",
+              display: "flex", alignItems: "center", gap: 6, whiteSpace: "nowrap",
+            }}>
+              {t.l}
+              {t.n > 0 && (
+                <span style={{
+                  background: filter === t.k ? "#E5E5E7" : "#F4F4F5",
+                  color: t.danger ? "#C62828" : "#6B6B6F",
+                  padding: "1px 6px", borderRadius: 8, fontSize: 10, fontWeight: 600,
+                }}>{t.n}</span>
+              )}
+            </button>
+          ))}
+        </div>
+        <div style={{ display: "flex", alignItems: "center", gap: 8, paddingBottom: 8 }}>
+          <span style={{ fontSize: 11, color: "#6B6B6F", fontWeight: 500 }}>Categoría:</span>
+          <select
+            value={categoryFilter}
+            onChange={(e) => setCategoryFilter(e.target.value)}
+            style={{
+              padding: "5px 24px 5px 10px", border: "1px solid #E5E5E7", borderRadius: 6,
+              fontSize: 12, color: "#111", fontFamily: "inherit", background: "white",
+              appearance: "none",
+              backgroundImage: "url(\"data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='%236B6B6F' stroke-width='2'%3e%3cpath d='M6 9l6 6 6-6'/%3e%3c/svg%3e\")",
+              backgroundRepeat: "no-repeat", backgroundPosition: "right 8px center",
+            }}
+          >
+            <option value="todos">Todas</option>
+            {categoriesAvailable.map(c => <option key={c} value={c}>{c}</option>)}
+          </select>
+        </div>
+      </div>
+
+      {/* Header de columnas — IDÉNTICO al dashboard global */}
+      <div style={{
+        display: "grid", gridTemplateColumns: "30px 1.3fr 1fr 1fr 1fr .8fr 1fr 1.1fr 1fr 50px",
+        padding: "11px 18px", background: "#FAFAFB", borderBottom: "1px solid #ECECEE",
+        fontSize: 10, fontWeight: 600, color: "#9CA3AF", textTransform: "uppercase", letterSpacing: ".3px",
+      }}>
+        <div></div>
+        <div>Espacio</div>
+        <div>Categoría</div>
+        <div>Fecha vencimiento</div>
+        <div>Total</div>
+        <div>Pagado</div>
+        <div>Pendiente</div>
+        <div>Cobranza</div>
+        <div>Estatus</div>
+        <div>Acciones</div>
+      </div>
+
+      {filtered.map((r, i) => (
+        <CargoRow
+          key={r.id} r={r}
+          isLast={i === filtered.length - 1}
+          onConciliate={() => conciliateRow(r.id)}
+          onPartialPay={() => partialPay(r.id)}
+          menuOpen={openMenuId === r.id}
+          setMenuOpen={(v) => setOpenMenuId(v ? r.id : null)}
+        />
+      ))}
+
+      {filtered.length === 0 && (
+        <div style={{ padding: "40px 18px", textAlign: "center", color: "#9CA3AF", fontSize: 13 }}>
+          Sin cargos para este filtro.
+        </div>
+      )}
+    </div>
+  );
+}
+
+function CargoRow({ r, isLast, onConciliate, onPartialPay, menuOpen, setMenuOpen }) {
+  const isClosed = r.status === "closed_no_overage";
+  const isPaid = r.status === "paid";
+  const isExc = r.isExc;
+  const pctCobrado = r.total > 0 ? Math.round((r.paid / r.total) * 100) : 0;
+
+  // Color del badge del espacio (igual a la imagen — badge azul pastel)
+  const spaceLabel = "Torre Majo Test · P1-01";
+
+  return (
+    <div style={{
+      display: "grid", gridTemplateColumns: "30px 1.3fr 1fr 1fr 1fr .8fr 1fr 1.1fr 1fr 50px",
+      padding: "12px 18px", alignItems: "center",
+      borderBottom: isLast ? "none" : "1px solid #F4F4F5",
+      fontSize: 12.5, color: "#111",
+    }}>
+      <div>
+        <input type="checkbox" style={{ cursor: "pointer", accentColor: "#2563EB" }} />
+      </div>
+      <div>
+        <span style={{
+          display: "inline-block", padding: "3px 9px",
+          background: "#EFF6FF", color: "#1E40AF",
+          fontSize: 11, fontWeight: 500, borderRadius: 12,
+        }}>
+          {spaceLabel}
+        </span>
+      </div>
+      <div style={{ color: "#1A1A1A" }}>
+        {r.concept}
+        {isExc && (
+          <span style={{ marginLeft: 6, fontSize: 9, fontWeight: 600, padding: "1px 5px", background: "#EEF2FF", color: "#4338CA", borderRadius: 3, letterSpacing: ".3px", textTransform: "uppercase" }}>
+            Auto
+          </span>
+        )}
+      </div>
+      <div style={{ color: "#6B6B6F" }}>{r.date}</div>
+      <div style={{ color: isClosed ? "#9CA3AF" : "#111", fontWeight: 500 }}>
+        {r.total == null ? "—" : `$${r.total.toLocaleString("es-MX")} MXN`}
+      </div>
+      <div style={{ color: r.paid > 0 ? "#1F8546" : "#C7C7CB" }}>
+        {r.paid > 0 ? `$${r.paid.toLocaleString("es-MX")}` : "0 MXN"}
+      </div>
+      <div style={{ color: r.pending == null ? "#C7C7CB" : r.pending > 0 ? "#1A1A1A" : "#9CA3AF" }}>
+        {r.pending == null ? "—" : `$${r.pending.toLocaleString("es-MX")} MXN`}
+      </div>
+      {/* Cobranza — progress bar */}
+      <div>
+        {r.total > 0 ? (
+          <div>
+            <div style={{ height: 6, background: "#F4F4F5", borderRadius: 3, overflow: "hidden" }}>
+              <div style={{
+                height: "100%",
+                width: `${pctCobrado}%`,
+                background: pctCobrado === 100 ? "#1F8546" : pctCobrado > 0 ? "#FFA726" : "#E5E5E7",
+                transition: "width .2s",
+              }} />
+            </div>
+            <div style={{ fontSize: 10, color: "#9CA3AF", marginTop: 3 }}>{pctCobrado}%</div>
+          </div>
+        ) : (
+          <span style={{ fontSize: 11, color: "#C7C7CB" }}>—</span>
+        )}
+      </div>
+      <div>
+        <Badge status={r.status} />
+      </div>
+      {/* Acciones */}
+      <div onClick={(e) => e.stopPropagation()} style={{ position: "relative", textAlign: "right" }}>
+        {!isPaid && !isClosed && (
+          <button
+            onClick={() => setMenuOpen(!menuOpen)}
+            style={{
+              width: 28, height: 28, background: "white",
+              border: "1px solid #E5E5E7", borderRadius: 6,
+              fontSize: 13, color: "#6B6B6F", cursor: "pointer", fontFamily: "inherit",
+            }}
+          >⋯</button>
+        )}
+        {menuOpen && (
+          <>
+            <div onClick={() => setMenuOpen(false)} style={{ position: "fixed", inset: 0, zIndex: 10 }} />
+            <div style={{
+              position: "absolute", right: 0, top: 32, zIndex: 11,
+              background: "white", border: "1px solid #E5E5E7", borderRadius: 8,
+              boxShadow: "0 4px 16px rgba(0,0,0,.08)", minWidth: 200, overflow: "hidden",
+            }}>
+              <button onClick={onConciliate} style={menuItemStyle}>
+                ✓ Conciliar (pago total)
+              </button>
+              <button onClick={onPartialPay} style={menuItemStyle}>
+                ◐ Registrar pago parcial
+              </button>
+              <div style={{ height: 1, background: "#F4F4F5" }} />
+              <button style={menuItemStyle}>
+                📎 Adjuntar comprobante
+              </button>
+              <button style={menuItemStyle}>
+                👁 Ver detalle
+              </button>
+            </div>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
+const menuItemStyle = {
+  width: "100%", padding: "9px 14px", background: "white",
+  border: "none", textAlign: "left", fontSize: 12, color: "#111",
+  cursor: "pointer", fontFamily: "inherit",
+};
+
+// ════════════════════════════════════════════════════════════
+// VENTAS TAB — todas las ventas reportadas del contrato
+// ════════════════════════════════════════════════════════════
+
+function VentasTab({ billing, setBilling }) {
+  const [statusFilter, setStatusFilter] = useState("todos");
+  const [editingId, setEditingId] = useState(null);
+  const [editValue, setEditValue] = useState("");
+  const [openMenuId, setOpenMenuId] = useState(null);
+
+  const periodos = useMemo(
+    () => billing.filter(r => r.isExc).sort((a, b) => a.date.localeCompare(b.date)),
+    [billing]
+  );
+
+  const filteredPeriodos = useMemo(() => {
+    if (statusFilter === "todos") return periodos;
+    return periodos.filter(p => mapToVentaStatus(p) === statusFilter);
+  }, [periodos, statusFilter]);
+
+  const counts = useMemo(() => ({
+    todos: periodos.length,
+    pendiente: periodos.filter(p => mapToVentaStatus(p) === "pendiente").length,
+    reportado: periodos.filter(p => mapToVentaStatus(p) === "reportado").length,
+    aprobado: periodos.filter(p => mapToVentaStatus(p) === "aprobado").length,
+    rechazado: periodos.filter(p => mapToVentaStatus(p) === "rechazado").length,
+  }), [periodos]);
+
+  const stats = useMemo(() => {
+    const reportados = periodos.filter(p => p.salesAmt != null);
+    const ventasYTD = reportados.reduce((s, p) => s + (p.salesAmt || 0), 0);
+    const diferencialesGenerados = reportados.filter(p => p.supera).reduce((s, p) => s + (p.total || 0), 0);
+    const promedioVentas = reportados.length > 0 ? ventasYTD / reportados.length : 0;
+    return {
+      totalReportes: reportados.length,
+      ventasYTD, diferencialesGenerados, promedioVentas,
+    };
+  }, [periodos]);
+
+  // ═══ Handlers ═══
+  const startEdit = (row) => {
+    setEditingId(row.id);
+    setEditValue(row.salesAmt != null ? String(row.salesAmt) : "");
+  };
+  const cancelEdit = () => { setEditingId(null); setEditValue(""); };
+
+  // Commit edit → pasa a "Reportado" (esperando aprobación)
+  const commitEdit = (rowId) => {
+    const amt = parseFloat(editValue);
+    setBilling(billing.map(r => {
+      if (r.id !== rowId) return r;
+      if (!editValue || !amt || amt <= 0) {
+        return { ...r, total: null, paid: 0, pending: null, status: "pending_submission", salesAmt: undefined, salesPct: undefined, supera: undefined };
+      }
+      const salesPct = Math.round(amt * CT.pct / 100);
+      const supera = salesPct > CT.rentBase;
+      const diferencial = supera ? salesPct - CT.rentBase : 0;
+      return {
+        ...r, total: diferencial, pending: null, status: "pending_review",
+        salesAmt: amt, salesPct, supera,
+      };
+    }));
+    cancelEdit();
+  };
+
+  // Aprobar → genera cargo en Cargos
+  const handleApprove = (rowId) => {
+    setBilling(billing.map(r => r.id === rowId
+      ? { ...r, status: r.total === 0 ? "closed_no_overage" : "due_soon", pending: r.total }
+      : r
+    ));
+    setOpenMenuId(null);
+  };
+
+  // Rechazar → vuelve a "Pendiente"
+  const handleReject = (rowId) => {
+    setBilling(billing.map(r => r.id === rowId
+      ? { ...r, total: null, paid: 0, pending: null, status: "rejected", salesAmt: undefined, salesPct: undefined, supera: undefined }
+      : r
+    ));
+    setOpenMenuId(null);
+  };
+
+  return (
+    <div>
+      {/* ═══ Link tokenizado para inquilino — banner principal ═══ */}
+      <div style={{
+        background: "linear-gradient(to right, #FAFBFF, white)",
+        border: "1px solid #C7D2FE", borderRadius: 10, padding: "16px 20px", marginBottom: 14,
+      }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 16 }}>
+          <div style={{ flex: 1 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
+              <span style={{ fontSize: 16 }}>🔗</span>
+              <span style={{ fontSize: 13, fontWeight: 700, color: "#4338CA" }}>Link de reporte para inquilino</span>
+              <span style={{ padding: "1px 7px", background: "#EEF2FF", color: "#4338CA", fontSize: 10, fontWeight: 600, borderRadius: 4 }}>
+                Tokenizado · Revocable
+              </span>
+            </div>
+            <div style={{ fontSize: 11, color: "#6B6B6F", marginBottom: 10 }}>
+              Comparte este link con el inquilino para que reporte sus ventas mensuales. Pantalla de una sola tarea con evidencia obligatoria.
+            </div>
+            <div style={{
+              fontFamily: "ui-monospace, monospace", fontSize: 11, color: "#555",
+              padding: "8px 12px", background: "white", border: "1px solid #ECECEE", borderRadius: 6,
+              wordBreak: "break-all",
+            }}>
+              {CT.publicLink}
+            </div>
+          </div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+            <button style={{
+              padding: "8px 16px", background: "#4338CA", color: "white",
+              border: "none", borderRadius: 6, fontSize: 12, fontWeight: 600,
+              cursor: "pointer", fontFamily: "inherit", whiteSpace: "nowrap",
+            }}>📋 Copiar link</button>
+            <button style={{
+              padding: "6px 12px", background: "white", color: "#4338CA",
+              border: "1px solid #C7D2FE", borderRadius: 6, fontSize: 11, fontWeight: 500,
+              cursor: "pointer", fontFamily: "inherit", whiteSpace: "nowrap",
+            }}>✉ Enviar por email</button>
+            <button style={{
+              padding: "6px 12px", background: "white", color: "#9CA3AF",
+              border: "1px solid #E5E5E7", borderRadius: 6, fontSize: 11, fontWeight: 500,
+              cursor: "pointer", fontFamily: "inherit", whiteSpace: "nowrap",
+            }}>🔄 Regenerar</button>
+          </div>
+        </div>
+      </div>
+
+      {/* ═══ Tabla principal ═══ */}
+      <div style={{ background: "white", border: "1px solid #ECECEE", borderRadius: 10, overflow: "hidden" }}>
+        {/* Header */}
+        <div style={{ padding: "16px 20px", borderBottom: "1px solid #ECECEE", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <div>
+            <div style={{ fontSize: 14, fontWeight: 700, color: "#111" }}>Reportes de ventas</div>
+            <div style={{ fontSize: 11, color: "#6B6B6F", marginTop: 2 }}>
+              Captura ventas inline. Aprueba con ✓ para generar el cargo de Diferencial RV en Cargos. Evidencia y acciones extra en el menú ⋯
+            </div>
+          </div>
+          <div style={{ display: "flex", gap: 8 }}>
+            <button style={{ padding: "7px 12px", background: "white", border: "1px solid #E5E5E7", borderRadius: 6, fontSize: 11, color: "#6B6B6F", cursor: "pointer", fontFamily: "inherit" }}>
+              ⬇ Exportar CSV
+            </button>
+            <button style={{ padding: "7px 12px", background: "white", border: "1px solid #C7D2FE", borderRadius: 6, fontSize: 11, color: "#4338CA", cursor: "pointer", fontFamily: "inherit", fontWeight: 600 }}>
+              + Solicitar reporte especial
+            </button>
+          </div>
+        </div>
+
+        {/* KPIs */}
+        <div style={{ padding: 18, borderBottom: "1px solid #ECECEE", display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12 }}>
+          <SalesKpi label="Ventas reportadas YTD" value={`$${(stats.ventasYTD / 1e6).toFixed(2)}M`} color="#111" />
+          <SalesKpi label="Promedio mensual" value={`$${(stats.promedioVentas / 1e3).toFixed(0)}K`} color="#111" />
+          <SalesKpi label="Diferenciales generados" value={`$${(stats.diferencialesGenerados / 1e3).toFixed(0)}K`} color="#4338CA" sub={`${periodos.filter(p => p.supera).length} periodos superaron RMG`} />
+          <SalesKpi label="Por aprobar" value={counts.reportado} color="#92400E" sub="Requieren tu revisión" />
+        </div>
+
+        {/* Filtros */}
+        <div style={{ padding: "14px 18px 0", borderBottom: "1px solid #ECECEE", display: "flex", gap: 4, overflowX: "auto" }}>
+          {[
+            { k: "todos",     l: "Todos",       n: counts.todos },
+            { k: "pendiente", l: "Pendientes",  n: counts.pendiente,  special: true },
+            { k: "reportado", l: "Por aprobar", n: counts.reportado,  special: true },
+            { k: "aprobado",  l: "Aprobados",   n: counts.aprobado },
+            { k: "rechazado", l: "Rechazados",  n: counts.rechazado },
+          ].map(t => (
+            <button key={t.k} onClick={() => setStatusFilter(t.k)} style={{
+              padding: "8px 14px", border: "none",
+              background: statusFilter === t.k ? "#F4F4F5" : "transparent",
+              fontSize: 12, fontWeight: statusFilter === t.k ? 600 : 500,
+              color: statusFilter === t.k ? "#111" : "#6B6B6F",
+              borderRadius: "8px 8px 0 0", cursor: "pointer", fontFamily: "inherit",
+              display: "flex", alignItems: "center", gap: 6, whiteSpace: "nowrap",
+            }}>
+              {t.l}
+              {t.n > 0 && (
+                <span style={{
+                  background: statusFilter === t.k ? "#E5E5E7" : "#F4F4F5",
+                  color: t.special ? "#B26500" : "#6B6B6F",
+                  padding: "1px 6px", borderRadius: 8, fontSize: 10, fontWeight: 600,
+                }}>{t.n}</span>
+              )}
+            </button>
+          ))}
+        </div>
+
+        {/* Header de tabla */}
+        <div style={{
+          display: "grid", gridTemplateColumns: ".9fr 1fr 1.3fr 1fr 1.1fr 1fr 1.6fr 50px",
+          padding: "10px 18px", background: "#FAFAFB", borderBottom: "1px solid #ECECEE",
+          fontSize: 10, fontWeight: 600, color: "#9CA3AF", textTransform: "uppercase", letterSpacing: ".3px",
+        }}>
+          <div>Periodo</div>
+          <div>Fecha límite</div>
+          <div>Ventas netas</div>
+          <div>% aplicado</div>
+          <div>RMG vigente</div>
+          <div>Diferencial</div>
+          <div>Estado / acción</div>
+          <div></div>
+        </div>
+
+        {filteredPeriodos.map((p, i) => (
+          <VentaRow
+            key={p.id} p={p}
+            isLast={i === filteredPeriodos.length - 1}
+            editing={editingId === p.id}
+            editValue={editValue} setEditValue={setEditValue}
+            onStartEdit={() => startEdit(p)}
+            onCommitEdit={() => commitEdit(p.id)}
+            onCancelEdit={cancelEdit}
+            onApprove={() => handleApprove(p.id)}
+            onReject={() => handleReject(p.id)}
+            menuOpen={openMenuId === p.id}
+            setMenuOpen={(v) => setOpenMenuId(v ? p.id : null)}
+          />
+        ))}
+
+        {filteredPeriodos.length === 0 && (
+          <div style={{ padding: "40px 18px", textAlign: "center", color: "#9CA3AF", fontSize: 13 }}>
+            Sin reportes con este filtro.
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function SalesKpi({ label, value, color, sub }) {
+  return (
+    <div>
+      <div style={{ fontSize: 11, color: "#6B6B6F", marginBottom: 6 }}>{label}</div>
+      <div style={{ fontSize: 18, fontWeight: 700, color }}>{value}</div>
+      {sub && <div style={{ fontSize: 10, color: "#9CA3AF", marginTop: 3 }}>{sub}</div>}
+    </div>
+  );
+}
+
+// ════════════════════════════════════════════════════════════
+// VentaRow — edición inline + quick actions
+// ════════════════════════════════════════════════════════════
+function VentaRow({ p, isLast, editing, editValue, setEditValue, onStartEdit, onCommitEdit, onCancelEdit, onApprove, onReject, menuOpen, setMenuOpen }) {
+  const ventaStatus = mapToVentaStatus(p);
+  const vs = VENTAS_STATUS[ventaStatus];
+  const isPendiente = ventaStatus === "pendiente";
+  const isReportado = ventaStatus === "reportado";
+  const isAprobado = ventaStatus === "aprobado";
+  const inputRef = useRef(null);
+
+  useEffect(() => {
+    if (editing && inputRef.current) inputRef.current.focus();
+  }, [editing]);
+
+  const editAmt = parseFloat(editValue) || 0;
+  const hasEditInput = editing && editValue !== "" && editAmt > 0;
+  const previewPct = editing ? Math.round(editAmt * CT.pct / 100) : 0;
+  const previewSupera = editing && previewPct > CT.rentBase;
+  const previewDif = previewSupera ? previewPct - CT.rentBase : 0;
+
+  // Solo editable si no está aprobado
+  const canEdit = !isAprobado;
+
+  return (
+    <div style={{
+      display: "grid", gridTemplateColumns: ".9fr 1fr 1.3fr 1fr 1.1fr 1fr 1.6fr 50px",
+      padding: "11px 18px", alignItems: "center",
+      borderBottom: isLast ? "none" : "1px solid #F4F4F5",
+      background: editing ? "#FAFBFF" : isReportado ? "rgba(254, 243, 199, .25)" : isPendiente ? "rgba(255, 244, 229, .2)" : "white",
+      fontSize: 12.5,
+      transition: "background .12s",
+    }}>
+      <div style={{ color: "#111", fontWeight: 500 }}>{p.refPeriod}</div>
+      <div style={{ color: "#6B6B6F" }}>{p.date}</div>
+
+      {/* Ventas netas — editable inline */}
+      <div>
+        {editing ? (
+          <div>
+            <div style={{ position: "relative", maxWidth: 180 }}>
+              <span style={{ position: "absolute", left: 8, top: "50%", transform: "translateY(-50%)", fontSize: 11, color: "#9CA3AF", fontWeight: 600 }}>$</span>
+              <input
+                ref={inputRef} type="number" value={editValue}
+                onChange={(e) => setEditValue(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") onCommitEdit();
+                  if (e.key === "Escape") onCancelEdit();
+                }}
+                onBlur={() => setTimeout(() => editing && onCancelEdit(), 150)}
+                placeholder="ventas netas"
+                style={{
+                  width: "100%", padding: "5px 8px 5px 20px",
+                  border: `1.5px solid ${hasEditInput ? (previewSupera ? "#4338CA" : "#1F8546") : "#C7D2FE"}`,
+                  borderRadius: 5, fontSize: 12.5, fontWeight: 600, color: "#111",
+                  outline: "none", fontFamily: "inherit", boxSizing: "border-box", background: "white",
+                }} />
+            </div>
+            <div style={{ fontSize: 9, color: "#9CA3AF", marginTop: 3 }}>
+              <kbd style={{ background: "#F4F4F5", padding: "1px 4px", borderRadius: 3, fontSize: 9, fontWeight: 600, color: "#6B6B6F" }}>Enter</kbd> guardar
+              {" · "}
+              <kbd style={{ background: "#F4F4F5", padding: "1px 4px", borderRadius: 3, fontSize: 9, fontWeight: 600, color: "#6B6B6F" }}>Esc</kbd> cancelar
+            </div>
+          </div>
+        ) : canEdit ? (
+          <span
+            onClick={onStartEdit}
+            style={{
+              fontSize: 12.5, color: p.salesAmt ? "#111" : "#B26500",
+              fontWeight: p.salesAmt ? 600 : 500,
+              cursor: "pointer",
+              borderBottom: p.salesAmt ? "none" : "1px dashed #FED7AA",
+              paddingBottom: p.salesAmt ? 0 : 1,
+            }}
+          >
+            {p.salesAmt ? `$${p.salesAmt.toLocaleString("es-MX")}` : "Capturar ventas →"}
+          </span>
+        ) : (
+          <span style={{ fontSize: 12.5, color: "#111", fontWeight: 600 }}>
+            {p.salesAmt ? `$${p.salesAmt.toLocaleString("es-MX")}` : "—"}
+          </span>
+        )}
+      </div>
+
+      <div style={{ color: editing && hasEditInput ? "#4338CA" : p.salesAmt ? "#6B6B6F" : "#C7C7CB", fontFamily: "ui-monospace, monospace", fontSize: 11, fontWeight: editing && hasEditInput ? 700 : 400 }}>
+        {editing && hasEditInput
+          ? `${CT.pct}% = $${previewPct.toLocaleString("es-MX")}`
+          : p.salesPct
+            ? `${CT.pct}% = $${p.salesPct.toLocaleString("es-MX")}`
+            : "—"}
+      </div>
+
+      <div style={{ color: "#6B6B6F", fontSize: 11, fontFamily: "ui-monospace, monospace" }}>
+        ${CT.rentBase.toLocaleString("es-MX")}
+      </div>
+
+      <div>
+        {editing && hasEditInput ? (
+          previewSupera ? (
+            <span style={{ color: "#4338CA", fontWeight: 700 }}>${previewDif.toLocaleString("es-MX")} ↗</span>
+          ) : (
+            <span style={{ color: "#1F8546", fontWeight: 600 }}>$0</span>
+          )
+        ) : p.salesAmt == null ? (
+          <span style={{ color: "#C7C7CB" }}>—</span>
+        ) : p.supera ? (
+          <span style={{ color: "#4338CA", fontWeight: 700 }}>${p.total.toLocaleString("es-MX")} ↗</span>
+        ) : (
+          <span style={{ color: "#9CA3AF" }}>$0</span>
+        )}
+      </div>
+
+      {/* Estado / acción — quick actions inline */}
+      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+        <span style={{ display: "inline-block", padding: "3px 10px", borderRadius: 4, background: vs.bg, color: vs.fg, fontSize: 11, fontWeight: 500, whiteSpace: "nowrap" }}>
+          {vs.label}
+        </span>
+        {isReportado && !editing && (
+          <div style={{ display: "flex", gap: 4 }}>
+            <button onClick={onApprove} title="Aprobar y generar cargo" style={{
+              padding: "4px 9px", background: "#1F8546", color: "white",
+              border: "none", borderRadius: 5, fontSize: 11, fontWeight: 700,
+              cursor: "pointer", fontFamily: "inherit",
+            }}>
+              ✓
+            </button>
+            <button onClick={onReject} title="Rechazar" style={{
+              padding: "4px 9px", background: "white", color: "#C62828",
+              border: "1px solid #FBEAE9", borderRadius: 5, fontSize: 11, fontWeight: 600,
+              cursor: "pointer", fontFamily: "inherit",
+            }}>
+              ✕
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* Menú ⋯ con acciones extra */}
+      <div onClick={(e) => e.stopPropagation()} style={{ position: "relative", textAlign: "right" }}>
+        <button
+          onClick={() => setMenuOpen(!menuOpen)}
+          style={{
+            width: 28, height: 28, background: "white",
+            border: "1px solid #E5E5E7", borderRadius: 6,
+            fontSize: 13, color: "#6B6B6F", cursor: "pointer", fontFamily: "inherit",
+          }}
+        >⋯</button>
+        {menuOpen && (
+          <>
+            <div onClick={() => setMenuOpen(false)} style={{ position: "fixed", inset: 0, zIndex: 10 }} />
+            <div style={{
+              position: "absolute", right: 0, top: 32, zIndex: 11,
+              background: "white", border: "1px solid #E5E5E7", borderRadius: 8,
+              boxShadow: "0 4px 16px rgba(0,0,0,.08)", minWidth: 220, overflow: "hidden",
+            }}>
+              <button style={menuItemStyle}>
+                📎 Adjuntar evidencia
+              </button>
+              <button style={menuItemStyle}>
+                👁 Ver evidencia adjunta
+              </button>
+              <button style={menuItemStyle}>
+                📝 Agregar nota
+              </button>
+              <div style={{ height: 1, background: "#F4F4F5" }} />
+              {isAprobado && (
+                <button style={menuItemStyle}>
+                  🔗 Ver cargo generado
+                </button>
+              )}
+              {(isReportado || isAprobado) && (
+                <button style={{ ...menuItemStyle, color: "#B26500" }}>
+                  🚨 Marcar para auditoría
+                </button>
+              )}
+              {isPendiente && (
+                <button style={{ ...menuItemStyle, color: "#6B6B6F" }}>
+                  ✉ Recordar al inquilino
+                </button>
+              )}
+            </div>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
+
+const rootEl = document.getElementById("root");
+ReactDOM.createRoot(rootEl).render(<App />);
+</script>
+</body>
+</html>
