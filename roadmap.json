@@ -135,39 +135,6 @@
       ]
     },
     {
-      "id": "w1-panel-tokens",
-      "titulo": "Panel de tokens / consumo MCP",
-      "wave": "w1",
-      "sector": "producto",
-      "estatus": "Por hacer",
-      "responsable": "Gabriel",
-      "eta": "Q3 2026",
-      "figma_url": "",
-      "info_clave": "Tokens por skill, créditos remanentes, histórico por cuenta. Visible para el usuario. Datos de Langfuse: mediana ~122K tokens/thread, ~$0.10 USD real/crédito. Usa el mismo reporte que da el LLM ID."
-    },
-    {
-      "id": "w1-custom-fields",
-      "titulo": "Custom Fields v1",
-      "wave": "w1",
-      "sector": "agentica",
-      "estatus": "Por hacer",
-      "responsable": "Fabián y Dante",
-      "eta": "Q3 2026",
-      "figma_url": "",
-      "info_clave": "Campos personalizados por entidad (tipo de dato, label, title). Ej: exclusiones_contrato. Rompe la rigidez del esquema fijo. Se materializa en base de datos. Habilita que el agente razone sobre datos específicos del negocio."
-    },
-    {
-      "id": "w1-optimizacion-agente",
-      "titulo": "Optimización AI Agent + MCP",
-      "wave": "w1",
-      "sector": "agentica",
-      "estatus": "En proceso",
-      "responsable": "Fabián y Dante",
-      "eta": "Q2 2026",
-      "figma_url": "",
-      "info_clave": "Filtro por intención del usuario antes de cargar skills/tools. Evita cargar todas las tools en cada mensaje. Reduce latencia y consumo de tokens. Manejo especial para saludos y mensajes simples."
-    },
-    {
       "id": "w1-rbac",
       "titulo": "RBAC granular por activos",
       "wave": "w1",
@@ -201,17 +168,6 @@
       "info_clave": "Conexión de Notan Hub con los demás módulos y su sistema de notificaciones para tareas. Notas/tareas vinculadas a entidades (Contrato, Empresa, Espacio, Cargo). Extensión RFC 106. Habilita avisos y seguimiento de tareas a través de toda la plataforma."
     },
     {
-      "id": "w1-monitoreo-runtime",
-      "titulo": "Monitoreo básico de runtime",
-      "wave": "w1",
-      "sector": "plataforma",
-      "estatus": "Por hacer",
-      "responsable": "Mosh",
-      "eta": "Q3 2026",
-      "figma_url": "",
-      "info_clave": "Reportes de uso de sandbox y ejecuciones de workflows. Visibilidad temprana sobre costos operativos y rendimiento."
-    },
-    {
       "id": "w2-stacking-plan",
       "titulo": "Stacking Plan · todas las fases",
       "wave": "w2",
@@ -227,94 +183,6 @@
           "url": "docs/rfc-stacking-plan-v2.md"
         }
       ]
-    },
-    {
-      "id": "w2-metadata-layer",
-      "titulo": "Metadata Layer",
-      "wave": "w2",
-      "sector": "agentica",
-      "estatus": "Por hacer",
-      "responsable": "Fabián y Dante",
-      "eta": "Q4 2026",
-      "figma_url": "",
-      "info_clave": "Etiquetas inteligentes automáticas sobre datos, tablas, conversaciones y documentos a través de toda la app. El agente etiqueta proactivamente. Habilita que encuentre y relacione información sin esquema rígido."
-    },
-    {
-      "id": "w2-knowledge-base",
-      "titulo": "Consulta de Knowledge Base",
-      "wave": "w2",
-      "sector": "agentica",
-      "estatus": "Por hacer",
-      "responsable": "Fabián y Dante",
-      "eta": "Q4 2026",
-      "figma_url": "",
-      "info_clave": "PRIORIDAD ALTA. Búsqueda semántica con embeddings + citations sobre la knowledge base del tenant. La ingesta vive en Plataforma; aquí vive la consulta inteligente. Habilita respuestas confiables del portafolio con fuentes — el criterio de los 90 días. NO GraphRAG en v1: tagging + embeddings simples primero."
-    },
-    {
-      "id": "w2-proactive-layer",
-      "titulo": "Proactive Layer",
-      "wave": "w2",
-      "sector": "agentica",
-      "estatus": "Por hacer",
-      "responsable": "Fabián y Dante",
-      "eta": "Q4 2026",
-      "figma_url": "",
-      "info_clave": "ADELANTADO a W2. Observa patrones (reportes mensuales, ciclos de cobranza) y genera cronjobs proactivos. Sugiere y ejecuta cálculos de negocio, recordatorios y documentos sin intervención manual. El corazón del moat: Colossu como empleado proactivo."
-    },
-    {
-      "id": "w2-agentes-verticales",
-      "titulo": "Agentes Verticales por dominio",
-      "wave": "w2",
-      "sector": "agentica",
-      "estatus": "Por hacer",
-      "responsable": "Fabián y Dante",
-      "eta": "Q4 2026",
-      "figma_url": "",
-      "info_clave": "Agentes especializados por área: finanzas, cobranza, marketing, riesgos contractuales, pipeline de leads. Conocimiento profundo por vertical. Habilita precisión que un copilot genérico (Copilot Kit de Microsoft) no alcanza."
-    },
-    {
-      "id": "w2-whatsapp",
-      "titulo": "Agente WhatsApp · full scope",
-      "wave": "w2",
-      "sector": "agentica",
-      "estatus": "Por hacer",
-      "responsable": "Fabián y Dante",
-      "eta": "Q4 2026",
-      "figma_url": "",
-      "info_clave": "ADELANTADO de W3, full scope. Asistente 24/7 vía mensajería: inbound/outbound, contact matching, voice notes, approval UX para acciones sensibles, continuidad de thread, audit log. Operar casi todo sin entrar a la web. Djinn2-chat, WhatsApp categoría Utility."
-    },
-    {
-      "id": "w2-dashboards-inteligentes",
-      "titulo": "Dashboards Inteligentes",
-      "wave": "w2",
-      "sector": "agentica",
-      "estatus": "Por hacer",
-      "responsable": "Fabián y Dante",
-      "eta": "Exploración",
-      "figma_url": "",
-      "info_clave": "EXPLORACIÓN, no committed. Visualizaciones dinámicas vía json_renderer o framework propio desde consultas naturales. Dante lo despriorizó hasta consolidar la fundación de conocimiento."
-    },
-    {
-      "id": "w2-conexion-bd",
-      "titulo": "Conexión a BD del tenant + connectors",
-      "wave": "w2",
-      "sector": "plataforma",
-      "estatus": "Por hacer",
-      "responsable": "Mosh",
-      "eta": "Q4 2026",
-      "figma_url": "",
-      "info_clave": "Ingesta nativa SharePoint/Drive/S3 + sync con la BD del cliente (ocupación, ventas RMG, payments). Embeddings automáticos por documento (docx, xlsx, ppt, imágenes). Habilita medir CxC, cobranza y vacancia desde data viva. S3 tenant-scoped con audit."
-    },
-    {
-      "id": "w2-operational-memory",
-      "titulo": "Operational Memory + Agent Governance",
-      "wave": "w2",
-      "sector": "plataforma",
-      "estatus": "Por hacer",
-      "responsable": "Mosh",
-      "eta": "Q4 2026",
-      "figma_url": "",
-      "info_clave": "Skills, cronjobs y memorias en la BD de Colossu (tenant_id + env), no en el runtime. Endpoints get/search/create_skill y cronjob. Audit viewer estilo 'Twenty' (prompt + tool calls + evidencia + owner + estado). Approval gates para writes. Habilita automatización vendible y auditable."
     },
     {
       "id": "w2-composio-iac",
@@ -453,6 +321,160 @@
       "eta": "2027+",
       "figma_url": "",
       "info_clave": "Integración Syncfy, matching automático. 'Conciliar' ≠ 'Registrar pago'. Cierra el loop financiero pero NO es el centro del moat: el valor está en la inteligencia que opera sobre los datos, no en la reconciliación contable."
+    },
+    {
+      "id": "ag-skills-cronjobs",
+      "titulo": "Skills y cronjobs en Colossu",
+      "wave": "w1",
+      "sector": "agentica",
+      "estatus": "Por hacer",
+      "responsable": "Fabián y Dante",
+      "eta": "Q3 2026",
+      "figma_url": "",
+      "info_clave": "Mover el registro, almacenamiento y administración de skills, cronjobs y memories desde el AI Agent a la base de datos de Colossu (con tenant_id y env). Protege el conocimiento del tenant: si se desconecta el agente, skills y cronjobs permanecen en Colossu. Base sobre la que operan el MCP y el agente. LIGA CON: MCP tools (las consume), Visibilidad de cronjobs (los expone), Audit trail (los registra)."
+    },
+    {
+      "id": "ag-mcp-tools",
+      "titulo": "MCP tools: get / search / create",
+      "wave": "w1",
+      "sector": "agentica",
+      "estatus": "Por hacer",
+      "responsable": "Fabián y Dante",
+      "eta": "Q3 2026",
+      "figma_url": "",
+      "info_clave": "Endpoints robustos del MCP para operar skills y cronjobs desde el agente: get_skill, search_skill, get_cronjob, create_cronjob, search_cronjob. CRUD de skills y jobs accesible por el agente sin depender exclusivamente del runtime externo. LIGA CON: Skills y cronjobs en Colossu (es el almacén que estos endpoints consultan)."
+    },
+    {
+      "id": "ag-intent-routing",
+      "titulo": "Intent routing en el agente",
+      "wave": "w1",
+      "sector": "agentica",
+      "estatus": "En proceso",
+      "responsable": "Fabián y Dante",
+      "eta": "Q2 2026",
+      "figma_url": "",
+      "info_clave": "Filtro inteligente por intención del usuario antes de cargar skills y tools, evitando la carga completa en cada interacción. Reduce latencia y consumo de tokens; manejo especial para saludos y mensajes simples. Hace el agente rápido desde los primeros mensajes. LIGA CON: MCP tools (decide cuáles cargar), Panel de tokens (su efecto se mide ahí)."
+    },
+    {
+      "id": "ag-custom-fields",
+      "titulo": "Custom fields",
+      "wave": "w1",
+      "sector": "agentica",
+      "estatus": "Por hacer",
+      "responsable": "Fabián y Dante",
+      "eta": "Q3 2026",
+      "figma_url": "",
+      "info_clave": "Campos flexibles (tipo de dato, label, title) en cualquier entidad — contratos, assets, etc. Ej: 'exclusiones_contrato'. Rompe la rigidez de esquemas fijos y permite que el agente razone sobre información específica del negocio. Se materializa en base de datos. LIGA CON: Metadata layer (juntas forman la capa de contexto flexible), Knowledge Graph (Fase 3 los autogenera)."
+    },
+    {
+      "id": "ag-panel-tokens",
+      "titulo": "Panel de consumo de tokens",
+      "wave": "w1",
+      "sector": "agentica",
+      "estatus": "Por hacer",
+      "responsable": "Fabián y Dante",
+      "eta": "Q3 2026",
+      "figma_url": "",
+      "info_clave": "Reportes de consumo de tokens del LMID expuestos en el frontend, junto con uso de runtime (sandbox) y ejecuciones de workflows. Da a usuarios y equipo visibilidad de costos operativos y rendimiento desde etapas tempranas. LIGA CON: Intent routing (mide su ahorro), Visibilidad de cronjobs (comparten panel de observabilidad)."
+    },
+    {
+      "id": "ag-visibilidad-cronjobs",
+      "titulo": "Visibilidad de cronjobs y memorias",
+      "wave": "w1",
+      "sector": "agentica",
+      "estatus": "Por hacer",
+      "responsable": "Fabián y Dante",
+      "eta": "Q3 2026",
+      "figma_url": "",
+      "info_clave": "UI para auditar ejecuciones y estado de cronjobs y memorias del tenant. Permite ver cuántas ejecuciones ha tenido la sandbox y qué memorias tiene cada usuario. LIGA CON: Skills y cronjobs en Colossu (es lo que visualiza), Audit trail (Fase 2 lo profundiza con prompt+evidencia)."
+    },
+    {
+      "id": "ag-knowledge-base",
+      "titulo": "Knowledge base (Drive / SharePoint)",
+      "wave": "w2",
+      "sector": "agentica",
+      "estatus": "Por hacer",
+      "responsable": "Fabián y Dante",
+      "eta": "Q4 2026",
+      "figma_url": "",
+      "info_clave": "Integración nativa con SharePoint y Drive: sync y scan de archivos del tenant. Transforma archivos estáticos en una fuente consultable y contextualizada por el agente. NO GraphRAG en v1 — tagging + embeddings simples primero. LIGA CON: S3 files con embeddings (es su almacén indexado), Knowledge Graph (Fase 3 construye relaciones sobre esto)."
+    },
+    {
+      "id": "ag-s3-embeddings",
+      "titulo": "S3 files con embeddings",
+      "wave": "w2",
+      "sector": "agentica",
+      "estatus": "Por hacer",
+      "responsable": "Fabián y Dante",
+      "eta": "Q4 2026",
+      "figma_url": "",
+      "info_clave": "Almacenamiento en S3 tenant-scoped con embeddings automáticos para documentos (docx, xlsx, pptx, imágenes). Habilita búsqueda semántica poderosa sobre toda la knowledge base del tenant con citations. LIGA CON: Knowledge base (es la fuente de archivos), Knowledge Graph (Fase 3 establece relaciones explícitas entre estos embeddings)."
+    },
+    {
+      "id": "ag-metadata-layer",
+      "titulo": "Metadata layer",
+      "wave": "w2",
+      "sector": "agentica",
+      "estatus": "Por hacer",
+      "responsable": "Fabián y Dante",
+      "eta": "Q4 2026",
+      "figma_url": "",
+      "info_clave": "Etiquetas inteligentes automáticas sobre datos, tablas, conversaciones y documentos a través de toda la app. El agente etiqueta proactivamente. LIGA CON: Custom fields (juntas forman la capa de contexto flexible), Knowledge Graph (Fase 3 la autogenera desde el grafo)."
+    },
+    {
+      "id": "ag-agente-whatsapp",
+      "titulo": "Agente en WhatsApp",
+      "wave": "w2",
+      "sector": "agentica",
+      "estatus": "Por hacer",
+      "responsable": "Fabián y Dante",
+      "eta": "Q4 2026",
+      "figma_url": "",
+      "info_clave": "Skills + Knowledge Base accesibles 24/7 desde WhatsApp. Asistente full vía mensajería: consultas, ejecución de acciones, envío de reportes y procesamiento de voz. El usuario administra prácticamente toda la operación sin entrar a la web. LIGA CON: Skills y cronjobs en Colossu (lo que ejecuta), Knowledge base (lo que consulta), Audit trail (registra acciones sensibles)."
+    },
+    {
+      "id": "ag-audit-trail",
+      "titulo": "Audit trail de acciones agénticas",
+      "wave": "w2",
+      "sector": "agentica",
+      "estatus": "Por hacer",
+      "responsable": "Fabián y Dante",
+      "eta": "Q4 2026",
+      "figma_url": "",
+      "info_clave": "Prompt + tools invocadas + resultado visible por tenant. Transparencia total de lo que hace el agente, inspirado en el producto 'Twenty'. Approval gates para writes sensibles. Sin esto la automatización no es vendible: si no se prueba el resultado, no se cobra. LIGA CON: Visibilidad de cronjobs (lo extiende), Agente WhatsApp (audita sus acciones), Automatizaciones avanzadas (Fase 3 lo exige para compliance)."
+    },
+    {
+      "id": "ag-proactive-layer",
+      "titulo": "Proactive layer",
+      "wave": "w2",
+      "sector": "agentica",
+      "estatus": "Por hacer",
+      "responsable": "Fabián y Dante",
+      "eta": "Q4 2026",
+      "figma_url": "",
+      "info_clave": "Observa patrones de uso del tenant (reportes mensuales, ciclos de cobranza) para aprender automáticamente y generar cronjobs proactivos. Al inicio y final de periodos clave sugiere y ejecuta cálculos de negocio, recordatorios y generación de documentos sin intervención manual. El corazón del moat: Colossu como empleado proactivo. LIGA CON: Skills y cronjobs (los genera), Learning Loop (Fase 3 lo lleva a autonomía total)."
+    },
+    {
+      "id": "ag-dashboards",
+      "titulo": "Dashboards inteligentes",
+      "wave": "w2",
+      "sector": "agentica",
+      "estatus": "Por hacer",
+      "responsable": "Fabián y Dante",
+      "eta": "Exploración",
+      "figma_url": "",
+      "info_clave": "El agente genera UI ad hoc: visualizaciones dinámicas vía json_renderer o frameworks internos basadas en consultas naturales del usuario. Paneles personalizados con métricas clave sin desarrollo manual. EXPLORACIÓN — despriorizado hasta consolidar la fundación de conocimiento. LIGA CON: Knowledge base (fuente de datos), Custom fields (campos que visualiza)."
+    },
+    {
+      "id": "ag-agentes-verticales",
+      "titulo": "Agentes verticales por dominio",
+      "wave": "w2",
+      "sector": "agentica",
+      "estatus": "Por hacer",
+      "responsable": "Fabián y Dante",
+      "eta": "Q4 2026",
+      "figma_url": "",
+      "info_clave": "Agentes especializados por área funcional (finanzas, cobranza, marketing, riesgos contractuales, pipeline de leads) que operan con conocimiento profundo del contexto vertical. Mejoran precisión y relevancia de respuestas y automatizaciones en cada flujo. LIGA CON: Knowledge base (su contexto), Proactive layer (los activa)."
     }
   ]
 }
