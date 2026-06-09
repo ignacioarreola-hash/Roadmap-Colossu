@@ -126,7 +126,13 @@
       "responsable": "Gabriel",
       "eta": "Q3 2026",
       "figma_url": "renta-variable.html",
-      "info_clave": "Lógica max(RMG, ventas × %). Lifecycle versionado con rule_version_id + calculation_snapshot. Excedente variable como BillingRecord separado con reference_period. minimum_guaranteed es el término canónico (no fixed_and_variable)."
+      "info_clave": "Lógica max(RMG, ventas × %). Lifecycle versionado con rule_version_id + calculation_snapshot. Excedente variable como BillingRecord separado con reference_period. minimum_guaranteed es el término canónico (no fixed_and_variable).",
+      "docs": [
+        {
+          "nombre": "RFC Renta Variable V3",
+          "url": "docs/rfc-renta-variable-v3.md"
+        }
+      ]
     },
     {
       "id": "w1-panel-tokens",
@@ -214,7 +220,13 @@
       "responsable": "Gabriel",
       "eta": "Q4 2026",
       "figma_url": "stacking-plan.html",
-      "info_clave": "Mapa espacial 2D cenital navegable (Konva.js: pan/zoom/hover/click). Tres capas: Geometría → Espacio/Activo → Contrato. Lentes: Ocupación, Salud Comercial (ventas vs RMG). Fase 3 cruza con Cobranza Variable. 3D explícitamente rechazado."
+      "info_clave": "Mapa espacial 2D cenital navegable (Konva.js: pan/zoom/hover/click). Tres capas: Geometría → Espacio/Activo → Contrato. Lentes: Ocupación, Salud Comercial (ventas vs RMG). Fase 3 cruza con Cobranza Variable. 3D explícitamente rechazado.",
+      "docs": [
+        {
+          "nombre": "RFC Stacking Plan v2",
+          "url": "docs/rfc-stacking-plan-v2.md"
+        }
+      ]
     },
     {
       "id": "w2-metadata-layer",
@@ -334,8 +346,14 @@
       "estatus": "Por hacer",
       "responsable": "Mosh",
       "eta": "Q4 2026",
-      "figma_url": "",
-      "info_clave": "Equipo externo Spark construye algo similar; arranca ~1 mes antes del cierre de W1 con overlap deliberado. Requiere revisión de Tatiana (LFPDPPP). Pendiente NOM-151 para log de auditoría con valor probatorio."
+      "figma_url": "https://v0-comunicacion-y-configuracion.vercel.app/",
+      "info_clave": "Listas de difusión para que el desarrollador envíe recordatorios y notificaciones personalizadas a inquilinos (manual o recurrente), a su nombre, con ligas configurables (pagar, reportar ventas), todo respaldado. Equipo externo Spark con overlap deliberado. Requiere revisión de Tatiana (LFPDPPP). Pendiente NOM-151 para valor probatorio. Prototipo V0 disponible.",
+      "docs": [
+        {
+          "nombre": "BRD Listas de Difusión v2.2",
+          "url": "docs/listas-difusion-brd.md"
+        }
+      ]
     },
     {
       "id": "w3-carga-masiva",
