@@ -475,6 +475,17 @@
       "eta": "Q4 2026",
       "figma_url": "",
       "info_clave": "Agentes especializados por área funcional (finanzas, cobranza, marketing, riesgos contractuales, pipeline de leads) que operan con conocimiento profundo del contexto vertical. Mejoran precisión y relevancia de respuestas y automatizaciones en cada flujo. LIGA CON: Knowledge base (su contexto), Proactive layer (los activa)."
+    },
+    {
+      "id": "w1-contratos-filtros",
+      "titulo": "Contratos · Filtros y Estados",
+      "wave": "w1",
+      "sector": "producto",
+      "estatus": "En proceso",
+      "responsable": "Gabriel",
+      "eta": "Q3 2026",
+      "figma_url": "contratos-tabla.html",
+      "info_clave": "Mejora de la tabla de contratos: filtros por estado y vista segregada. El estado 'Cerrado' es el único terminal que sale de la vista operativa al tab Histórico. Modal unificado (contrato nuevo + convenio modificatorio). LIGA CON: Contratos + ContractsAI/OCR (extiende el módulo base de W0)."
     }
   ]
 }
