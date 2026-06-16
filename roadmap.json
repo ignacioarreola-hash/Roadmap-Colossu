@@ -15,6 +15,20 @@
       "w2": "Wave 2 · Knowledge Foundation + Capa Agéntica",
       "w3": "Wave 3 · Autonomía avanzada y cierre de outcomes",
       "w4": "Wave 4 · Sistema operativo digital completo"
+    },
+    "sprints": {
+      "capacidad_por_persona": 50,
+      "responsables": {
+        "producto": "Gabriel Tello",
+        "agentica": "Fabián Rodríguez",
+        "plataforma": "Josue Contreras (Mosh)"
+      },
+      "lista": {
+        "s1": "Sprint 1 · semanas 1-2",
+        "s2": "Sprint 2 · semanas 3-4",
+        "backlog": "Backlog",
+        "entregado": "Entregado"
+      }
     }
   },
   "proyectos": [
@@ -27,7 +41,9 @@
       "responsable": "Gabriel",
       "eta": "Entregado",
       "figma_url": "",
-      "info_clave": "Complejo → Piso → Espacio. La columna vertebral del modelo de datos. Base ya construida y en producción."
+      "info_clave": "Complejo → Piso → Espacio. La columna vertebral del modelo de datos. Base ya construida y en producción.",
+      "puntos": 0,
+      "sprint": "entregado"
     },
     {
       "id": "w0-contratos-ocr",
@@ -38,7 +54,9 @@
       "responsable": "Gabriel",
       "eta": "Entregado",
       "figma_url": "",
-      "info_clave": "Extracción asistida con OCR, entrenado con contratos reales (Llama Cloud). Estado terminal 'Cerrado' va a tab Histórico."
+      "info_clave": "Extracción asistida con OCR, entrenado con contratos reales (Llama Cloud). Estado terminal 'Cerrado' va a tab Histórico.",
+      "puntos": 0,
+      "sprint": "entregado"
     },
     {
       "id": "w0-crm-kanban",
@@ -49,7 +67,9 @@
       "responsable": "Gabriel",
       "eta": "Entregado",
       "figma_url": "",
-      "info_clave": "Leads, empresas y pipelines con vista Kanban. Ganado / perdido. Integración con formularios embebibles."
+      "info_clave": "Leads, empresas y pipelines con vista Kanban. Ganado / perdido. Integración con formularios embebibles.",
+      "puntos": 0,
+      "sprint": "entregado"
     },
     {
       "id": "w0-cobranza-p1",
@@ -60,7 +80,9 @@
       "responsable": "Gabriel",
       "eta": "Q2 2026",
       "figma_url": "",
-      "info_clave": "Forma A (cargo directo) / Forma B (depósito global FIFO), RMG, vista 360° del contrato. Registro manual de pagos. Criterio de validación: ≥2 de 4 tenants registran 10+ pagos reales en 2 semanas post-launch."
+      "info_clave": "Forma A (cargo directo) / Forma B (depósito global FIFO), RMG, vista 360° del contrato. Registro manual de pagos. Criterio de validación: ≥2 de 4 tenants registran 10+ pagos reales en 2 semanas post-launch.",
+      "puntos": 0,
+      "sprint": "entregado"
     },
     {
       "id": "w0-mcp-base",
@@ -71,7 +93,9 @@
       "responsable": "Fabián y Dante",
       "eta": "Entregado",
       "figma_url": "",
-      "info_clave": "10 prompts pre-built + generación documental. Infraestructura de interoperabilidad — aún no es el moat. El moat vive en el agente vertical, no en el MCP crudo."
+      "info_clave": "10 prompts pre-built + generación documental. Infraestructura de interoperabilidad — aún no es el moat. El moat vive en el agente vertical, no en el MCP crudo.",
+      "puntos": 0,
+      "sprint": "entregado"
     },
     {
       "id": "w0-formularios",
@@ -82,7 +106,9 @@
       "responsable": "Mosh",
       "eta": "Entregado",
       "figma_url": "",
-      "info_clave": "Ingesta de leads vía webhooks al CRM. Wedge comercial que se conectará al agente / WhatsApp / follow-up en waves posteriores."
+      "info_clave": "Ingesta de leads vía webhooks al CRM. Wedge comercial que se conectará al agente / WhatsApp / follow-up en waves posteriores.",
+      "puntos": 0,
+      "sprint": "entregado"
     },
     {
       "id": "w0-notificaciones",
@@ -93,7 +119,9 @@
       "responsable": "Mosh",
       "eta": "Entregado",
       "figma_url": "",
-      "info_clave": "Engine base de avisos por evento. Contiene la tesis de plataforma proactiva; se conectará al agente en la capa agéntica."
+      "info_clave": "Engine base de avisos por evento. Contiene la tesis de plataforma proactiva; se conectará al agente en la capa agéntica.",
+      "puntos": 0,
+      "sprint": "entregado"
     },
     {
       "id": "w1-rediseno-ui",
@@ -104,7 +132,9 @@
       "responsable": "Gabriel",
       "eta": "Q3 2026",
       "figma_url": "",
-      "info_clave": "RFC/sprint fusionado. 4 campos por cuenta (font, logo, color primario/secundario) aplicados a 7 templates MCP. Diseño inspirado en Attio: minimalista, espacioso, bordes sutiles, neutros. Dependencia de Dante para MCP/templates y permisos."
+      "info_clave": "RFC/sprint fusionado. 4 campos por cuenta (font, logo, color primario/secundario) aplicados a 7 templates MCP. Diseño inspirado en Attio: minimalista, espacioso, bordes sutiles, neutros. Dependencia de Dante para MCP/templates y permisos.",
+      "puntos": 20,
+      "sprint": "s1"
     },
     {
       "id": "w1-cobranza-dash",
@@ -115,7 +145,9 @@
       "responsable": "Gabriel",
       "eta": "Q3 2026",
       "figma_url": "",
-      "info_clave": "Vista plana rediseñada con tabs Cargos · Ventas reportadas. KPIs dinámicos. Estados de ventas separados de estados de cargos."
+      "info_clave": "Vista plana rediseñada con tabs Cargos · Ventas reportadas. KPIs dinámicos. Estados de ventas separados de estados de cargos.",
+      "puntos": 15,
+      "sprint": "s1"
     },
     {
       "id": "w1-renta-variable",
@@ -132,7 +164,9 @@
           "nombre": "RFC Renta Variable V3",
           "url": "docs/rfc-renta-variable-v3.md"
         }
-      ]
+      ],
+      "puntos": 15,
+      "sprint": "s1"
     },
     {
       "id": "w1-rbac",
@@ -143,7 +177,9 @@
       "responsable": "Mosh",
       "eta": "Q3 2026",
       "figma_url": "",
-      "info_clave": "PRERREQUISITO del camino agéntico. Acceso Total/Restringido por usuario; backend valida cada GET. SAAS-1365 — reasignar de Horacio a Gabriel + Josue. Habilita que un agente escriba sin exponer datos fuera de permiso."
+      "info_clave": "PRERREQUISITO del camino agéntico. Acceso Total/Restringido por usuario; backend valida cada GET. SAAS-1365 — reasignar de Horacio a Gabriel + Josue. Habilita que un agente escriba sin exponer datos fuera de permiso.",
+      "puntos": 25,
+      "sprint": "s1"
     },
     {
       "id": "w1-master-user",
@@ -154,7 +190,9 @@
       "responsable": "Mosh",
       "eta": "Q3 2026",
       "figma_url": "",
-      "info_clave": "Super-admin por cuenta tenant que gestiona quién accede a qué. Depende de RBAC granular."
+      "info_clave": "Super-admin por cuenta tenant que gestiona quién accede a qué. Depende de RBAC granular.",
+      "puntos": 15,
+      "sprint": "s1"
     },
     {
       "id": "w1-notan-hub",
@@ -165,7 +203,9 @@
       "responsable": "Mosh",
       "eta": "Q3 2026",
       "figma_url": "",
-      "info_clave": "Conexión de Notan Hub con los demás módulos y su sistema de notificaciones para tareas. Notas/tareas vinculadas a entidades (Contrato, Empresa, Espacio, Cargo). Extensión RFC 106. Habilita avisos y seguimiento de tareas a través de toda la plataforma."
+      "info_clave": "Conexión de Notan Hub con los demás módulos y su sistema de notificaciones para tareas. Notas/tareas vinculadas a entidades (Contrato, Empresa, Espacio, Cargo). Extensión RFC 106. Habilita avisos y seguimiento de tareas a través de toda la plataforma.",
+      "puntos": 15,
+      "sprint": "s2"
     },
     {
       "id": "w2-stacking-plan",
@@ -182,7 +222,9 @@
           "nombre": "RFC Stacking Plan v2",
           "url": "docs/rfc-stacking-plan-v2.md"
         }
-      ]
+      ],
+      "puntos": 25,
+      "sprint": "s2"
     },
     {
       "id": "w2-composio-iac",
@@ -193,7 +235,9 @@
       "responsable": "Mosh",
       "eta": "Q4 2026",
       "figma_url": "",
-      "info_clave": "Conexión a ERPs y herramientas del tenant vía Composio.dev. Colossu Headless (Pulumi/Terraform) para IT de tenant enterprise."
+      "info_clave": "Conexión a ERPs y herramientas del tenant vía Composio.dev. Colossu Headless (Pulumi/Terraform) para IT de tenant enterprise.",
+      "puntos": 0,
+      "sprint": "backlog"
     },
     {
       "id": "w2-ciberseguridad",
@@ -204,7 +248,9 @@
       "responsable": "Mosh",
       "eta": "Q4 2026",
       "figma_url": "",
-      "info_clave": "SOC 2 Type II · ISO 27001 · OWASP · Zero Trust · FGA con JIT. Privacy by Design desde W1. Depende del análisis de compliance de Tatiana (LFPDPPP 2025)."
+      "info_clave": "SOC 2 Type II · ISO 27001 · OWASP · Zero Trust · FGA con JIT. Privacy by Design desde W1. Depende del análisis de compliance de Tatiana (LFPDPPP 2025).",
+      "puntos": 30,
+      "sprint": "s2"
     },
     {
       "id": "w2-listas-difusion",
@@ -221,7 +267,9 @@
           "nombre": "BRD Listas de Difusión v2.2",
           "url": "docs/listas-difusion-brd.md"
         }
-      ]
+      ],
+      "puntos": 0,
+      "sprint": "backlog"
     },
     {
       "id": "w3-carga-masiva",
@@ -232,7 +280,9 @@
       "responsable": "Gabriel",
       "eta": "2027",
       "figma_url": "",
-      "info_clave": "NUEVO — aún no lo tenemos. Bulk upload de contratos y datos históricos existentes. Se apoya en la conexión a BD/Drive de W2. Habilita onboarding de portafolios grandes sin captura manual."
+      "info_clave": "NUEVO — aún no lo tenemos. Bulk upload de contratos y datos históricos existentes. Se apoya en la conexión a BD/Drive de W2. Habilita onboarding de portafolios grandes sin captura manual.",
+      "puntos": 0,
+      "sprint": "backlog"
     },
     {
       "id": "w3-learning-loop",
@@ -243,7 +293,9 @@
       "responsable": "Fabián y Dante",
       "eta": "2027",
       "figma_url": "",
-      "info_clave": "Detecta tareas repetitivas de forma autónoma y las convierte en skills/cronjobs reutilizables. Cierra el ciclo de aprendizaje continuo. Habilita que el sistema evolucione con cada cliente."
+      "info_clave": "Detecta tareas repetitivas de forma autónoma y las convierte en skills/cronjobs reutilizables. Cierra el ciclo de aprendizaje continuo. Habilita que el sistema evolucione con cada cliente.",
+      "puntos": 0,
+      "sprint": "backlog"
     },
     {
       "id": "w3-inteligencia-predictiva",
@@ -254,7 +306,9 @@
       "responsable": "Fabián y Dante",
       "eta": "2027",
       "figma_url": "",
-      "info_clave": "Analiza el grafo de conocimiento para anticipar riesgos contractuales, salud de rentas y oportunidades de pipeline. Habilita decisiones antes de que el usuario detecte el problema."
+      "info_clave": "Analiza el grafo de conocimiento para anticipar riesgos contractuales, salud de rentas y oportunidades de pipeline. Habilita decisiones antes de que el usuario detecte el problema.",
+      "puntos": 0,
+      "sprint": "backlog"
     },
     {
       "id": "w3-cobranza-difusion",
@@ -265,7 +319,9 @@
       "responsable": "Fabián y Dante",
       "eta": "2027",
       "figma_url": "",
-      "info_clave": "El agente gestiona la cobranza: cron jobs de mora, recordatorios proactivos, WhatsApp como canal nativo. Bitácora con valor probatorio (NOM-151 + Art. 49 Cód. Comercio). Habilita cobranza que se opera sola — el outcome de CxC."
+      "info_clave": "El agente gestiona la cobranza: cron jobs de mora, recordatorios proactivos, WhatsApp como canal nativo. Bitácora con valor probatorio (NOM-151 + Art. 49 Cód. Comercio). Habilita cobranza que se opera sola — el outcome de CxC.",
+      "puntos": 0,
+      "sprint": "backlog"
     },
     {
       "id": "w3-knowledge-graph",
@@ -276,7 +332,9 @@
       "responsable": "Mosh",
       "eta": "Discovery",
       "figma_url": "",
-      "info_clave": "DISCOVERY — pendiente, no descartado. Relaciones explícitas entre documentos, contratos, assets y conversaciones (Llama Index / Neptune). Spike de producto primero: ¿qué relaciones le importan a un developer? (contrato ↔ espacio ↔ tenant ↔ pago ↔ vencimiento ↔ exclusiones). No le cerramos la puerta a Gabriel; la condicionamos a evidencia."
+      "info_clave": "DISCOVERY — pendiente, no descartado. Relaciones explícitas entre documentos, contratos, assets y conversaciones (Llama Index / Neptune). Spike de producto primero: ¿qué relaciones le importan a un developer? (contrato ↔ espacio ↔ tenant ↔ pago ↔ vencimiento ↔ exclusiones). No le cerramos la puerta a Gabriel; la condicionamos a evidencia.",
+      "puntos": 0,
+      "sprint": "backlog"
     },
     {
       "id": "w3-facturacion-cfdi",
@@ -287,7 +345,9 @@
       "responsable": "Mosh",
       "eta": "2027",
       "figma_url": "",
-      "info_clave": "ADELANTADO de W4. Selección de PAC pendiente (moat regulatorio identificado). Cierra el outcome de CxC junto a Cobranza Difusión. Habilita medir CxC de punta a punta: cargo → cobranza → factura. CFDI 4.0, IVA 16%, RFC."
+      "info_clave": "ADELANTADO de W4. Selección de PAC pendiente (moat regulatorio identificado). Cierra el outcome de CxC junto a Cobranza Difusión. Habilita medir CxC de punta a punta: cargo → cobranza → factura. CFDI 4.0, IVA 16%, RFC.",
+      "puntos": 0,
+      "sprint": "backlog"
     },
     {
       "id": "w3-spot2-bridge",
@@ -298,7 +358,9 @@
       "responsable": "Mosh",
       "eta": "2027",
       "figma_url": "",
-      "info_clave": "Sync bidireccional con el marketplace Spot2.mx (inventario, leads, webhooks profundos). Respeta el boundary legal: Colossu y Spot2 son entidades separadas; Spot2 recibe espacios pero no ve la info interna del tenant."
+      "info_clave": "Sync bidireccional con el marketplace Spot2.mx (inventario, leads, webhooks profundos). Respeta el boundary legal: Colossu y Spot2 son entidades separadas; Spot2 recibe espacios pero no ve la info interna del tenant.",
+      "puntos": 0,
+      "sprint": "backlog"
     },
     {
       "id": "w4-presencia-digital",
@@ -309,7 +371,9 @@
       "responsable": "Gabriel",
       "eta": "2027+",
       "figma_url": "",
-      "info_clave": "Sitio público alimentado por Asset Manager + Brand Kit. SEO técnico, digitalización asistida. Producto + servicio profesional."
+      "info_clave": "Sitio público alimentado por Asset Manager + Brand Kit. SEO técnico, digitalización asistida. Producto + servicio profesional.",
+      "puntos": 0,
+      "sprint": "backlog"
     },
     {
       "id": "w4-conciliacion",
@@ -320,7 +384,9 @@
       "responsable": "Mosh",
       "eta": "2027+",
       "figma_url": "",
-      "info_clave": "Integración Syncfy, matching automático. 'Conciliar' ≠ 'Registrar pago'. Cierra el loop financiero pero NO es el centro del moat: el valor está en la inteligencia que opera sobre los datos, no en la reconciliación contable."
+      "info_clave": "Integración Syncfy, matching automático. 'Conciliar' ≠ 'Registrar pago'. Cierra el loop financiero pero NO es el centro del moat: el valor está en la inteligencia que opera sobre los datos, no en la reconciliación contable.",
+      "puntos": 0,
+      "sprint": "backlog"
     },
     {
       "id": "ag-skills-cronjobs",
@@ -331,7 +397,9 @@
       "responsable": "Fabián y Dante",
       "eta": "Q3 2026",
       "figma_url": "",
-      "info_clave": "Mover el registro, almacenamiento y administración de skills, cronjobs y memories desde el AI Agent a la base de datos de Colossu (con tenant_id y env). Protege el conocimiento del tenant: si se desconecta el agente, skills y cronjobs permanecen en Colossu. Base sobre la que operan el MCP y el agente. LIGA CON: MCP tools (las consume), Visibilidad de cronjobs (los expone), Audit trail (los registra)."
+      "info_clave": "Mover el registro, almacenamiento y administración de skills, cronjobs y memories desde el AI Agent a la base de datos de Colossu (con tenant_id y env). Protege el conocimiento del tenant: si se desconecta el agente, skills y cronjobs permanecen en Colossu. Base sobre la que operan el MCP y el agente. LIGA CON: MCP tools (las consume), Visibilidad de cronjobs (los expone), Audit trail (los registra).",
+      "puntos": 20,
+      "sprint": "s1"
     },
     {
       "id": "ag-mcp-tools",
@@ -342,7 +410,9 @@
       "responsable": "Fabián y Dante",
       "eta": "Q3 2026",
       "figma_url": "",
-      "info_clave": "Endpoints robustos del MCP para operar skills y cronjobs desde el agente: get_skill, search_skill, get_cronjob, create_cronjob, search_cronjob. CRUD de skills y jobs accesible por el agente sin depender exclusivamente del runtime externo. LIGA CON: Skills y cronjobs en Colossu (es el almacén que estos endpoints consultan)."
+      "info_clave": "Endpoints robustos del MCP para operar skills y cronjobs desde el agente: get_skill, search_skill, get_cronjob, create_cronjob, search_cronjob. CRUD de skills y jobs accesible por el agente sin depender exclusivamente del runtime externo. LIGA CON: Skills y cronjobs en Colossu (es el almacén que estos endpoints consultan).",
+      "puntos": 15,
+      "sprint": "s1"
     },
     {
       "id": "ag-intent-routing",
@@ -353,7 +423,9 @@
       "responsable": "Fabián y Dante",
       "eta": "Q2 2026",
       "figma_url": "",
-      "info_clave": "Filtro inteligente por intención del usuario antes de cargar skills y tools, evitando la carga completa en cada interacción. Reduce latencia y consumo de tokens; manejo especial para saludos y mensajes simples. Hace el agente rápido desde los primeros mensajes. LIGA CON: MCP tools (decide cuáles cargar), Panel de tokens (su efecto se mide ahí)."
+      "info_clave": "Filtro inteligente por intención del usuario antes de cargar skills y tools, evitando la carga completa en cada interacción. Reduce latencia y consumo de tokens; manejo especial para saludos y mensajes simples. Hace el agente rápido desde los primeros mensajes. LIGA CON: MCP tools (decide cuáles cargar), Panel de tokens (su efecto se mide ahí).",
+      "puntos": 10,
+      "sprint": "s1"
     },
     {
       "id": "ag-custom-fields",
@@ -364,7 +436,9 @@
       "responsable": "Fabián y Dante",
       "eta": "Q3 2026",
       "figma_url": "",
-      "info_clave": "Campos flexibles (tipo de dato, label, title) en cualquier entidad — contratos, assets, etc. Ej: 'exclusiones_contrato'. Rompe la rigidez de esquemas fijos y permite que el agente razone sobre información específica del negocio. Se materializa en base de datos. LIGA CON: Metadata layer (juntas forman la capa de contexto flexible), Knowledge Graph (Fase 3 los autogenera)."
+      "info_clave": "Campos flexibles (tipo de dato, label, title) en cualquier entidad — contratos, assets, etc. Ej: 'exclusiones_contrato'. Rompe la rigidez de esquemas fijos y permite que el agente razone sobre información específica del negocio. Se materializa en base de datos. LIGA CON: Metadata layer (juntas forman la capa de contexto flexible), Knowledge Graph (Fase 3 los autogenera).",
+      "puntos": 12,
+      "sprint": "s2"
     },
     {
       "id": "ag-panel-tokens",
@@ -375,7 +449,9 @@
       "responsable": "Fabián y Dante",
       "eta": "Q3 2026",
       "figma_url": "",
-      "info_clave": "Reportes de consumo de tokens del LMID expuestos en el frontend, junto con uso de runtime (sandbox) y ejecuciones de workflows. Da a usuarios y equipo visibilidad de costos operativos y rendimiento desde etapas tempranas. LIGA CON: Intent routing (mide su ahorro), Visibilidad de cronjobs (comparten panel de observabilidad)."
+      "info_clave": "Reportes de consumo de tokens del LMID expuestos en el frontend, junto con uso de runtime (sandbox) y ejecuciones de workflows. Da a usuarios y equipo visibilidad de costos operativos y rendimiento desde etapas tempranas. LIGA CON: Intent routing (mide su ahorro), Visibilidad de cronjobs (comparten panel de observabilidad).",
+      "puntos": 8,
+      "sprint": "s2"
     },
     {
       "id": "ag-visibilidad-cronjobs",
@@ -386,7 +462,9 @@
       "responsable": "Fabián y Dante",
       "eta": "Q3 2026",
       "figma_url": "",
-      "info_clave": "UI para auditar ejecuciones y estado de cronjobs y memorias del tenant. Permite ver cuántas ejecuciones ha tenido la sandbox y qué memorias tiene cada usuario. LIGA CON: Skills y cronjobs en Colossu (es lo que visualiza), Audit trail (Fase 2 lo profundiza con prompt+evidencia)."
+      "info_clave": "UI para auditar ejecuciones y estado de cronjobs y memorias del tenant. Permite ver cuántas ejecuciones ha tenido la sandbox y qué memorias tiene cada usuario. LIGA CON: Skills y cronjobs en Colossu (es lo que visualiza), Audit trail (Fase 2 lo profundiza con prompt+evidencia).",
+      "puntos": 10,
+      "sprint": "s2"
     },
     {
       "id": "ag-knowledge-base",
@@ -397,7 +475,9 @@
       "responsable": "Fabián y Dante",
       "eta": "Q4 2026",
       "figma_url": "",
-      "info_clave": "Integración nativa con SharePoint y Drive: sync y scan de archivos del tenant. Transforma archivos estáticos en una fuente consultable y contextualizada por el agente. NO GraphRAG en v1 — tagging + embeddings simples primero. LIGA CON: S3 files con embeddings (es su almacén indexado), Knowledge Graph (Fase 3 construye relaciones sobre esto)."
+      "info_clave": "Integración nativa con SharePoint y Drive: sync y scan de archivos del tenant. Transforma archivos estáticos en una fuente consultable y contextualizada por el agente. NO GraphRAG en v1 — tagging + embeddings simples primero. LIGA CON: S3 files con embeddings (es su almacén indexado), Knowledge Graph (Fase 3 construye relaciones sobre esto).",
+      "puntos": 0,
+      "sprint": "backlog"
     },
     {
       "id": "ag-s3-embeddings",
@@ -408,7 +488,9 @@
       "responsable": "Fabián y Dante",
       "eta": "Q4 2026",
       "figma_url": "",
-      "info_clave": "Almacenamiento en S3 tenant-scoped con embeddings automáticos para documentos (docx, xlsx, pptx, imágenes). Habilita búsqueda semántica poderosa sobre toda la knowledge base del tenant con citations. LIGA CON: Knowledge base (es la fuente de archivos), Knowledge Graph (Fase 3 establece relaciones explícitas entre estos embeddings)."
+      "info_clave": "Almacenamiento en S3 tenant-scoped con embeddings automáticos para documentos (docx, xlsx, pptx, imágenes). Habilita búsqueda semántica poderosa sobre toda la knowledge base del tenant con citations. LIGA CON: Knowledge base (es la fuente de archivos), Knowledge Graph (Fase 3 establece relaciones explícitas entre estos embeddings).",
+      "puntos": 0,
+      "sprint": "backlog"
     },
     {
       "id": "ag-metadata-layer",
@@ -419,7 +501,9 @@
       "responsable": "Fabián y Dante",
       "eta": "Q4 2026",
       "figma_url": "",
-      "info_clave": "Etiquetas inteligentes automáticas sobre datos, tablas, conversaciones y documentos a través de toda la app. El agente etiqueta proactivamente. LIGA CON: Custom fields (juntas forman la capa de contexto flexible), Knowledge Graph (Fase 3 la autogenera desde el grafo)."
+      "info_clave": "Etiquetas inteligentes automáticas sobre datos, tablas, conversaciones y documentos a través de toda la app. El agente etiqueta proactivamente. LIGA CON: Custom fields (juntas forman la capa de contexto flexible), Knowledge Graph (Fase 3 la autogenera desde el grafo).",
+      "puntos": 0,
+      "sprint": "backlog"
     },
     {
       "id": "ag-agente-whatsapp",
@@ -430,7 +514,9 @@
       "responsable": "Fabián y Dante",
       "eta": "Q4 2026",
       "figma_url": "",
-      "info_clave": "Skills + Knowledge Base accesibles 24/7 desde WhatsApp. Asistente full vía mensajería: consultas, ejecución de acciones, envío de reportes y procesamiento de voz. El usuario administra prácticamente toda la operación sin entrar a la web. LIGA CON: Skills y cronjobs en Colossu (lo que ejecuta), Knowledge base (lo que consulta), Audit trail (registra acciones sensibles)."
+      "info_clave": "Skills + Knowledge Base accesibles 24/7 desde WhatsApp. Asistente full vía mensajería: consultas, ejecución de acciones, envío de reportes y procesamiento de voz. El usuario administra prácticamente toda la operación sin entrar a la web. LIGA CON: Skills y cronjobs en Colossu (lo que ejecuta), Knowledge base (lo que consulta), Audit trail (registra acciones sensibles).",
+      "puntos": 0,
+      "sprint": "backlog"
     },
     {
       "id": "ag-audit-trail",
@@ -441,7 +527,9 @@
       "responsable": "Fabián y Dante",
       "eta": "Q4 2026",
       "figma_url": "",
-      "info_clave": "Prompt + tools invocadas + resultado visible por tenant. Transparencia total de lo que hace el agente, inspirado en el producto 'Twenty'. Approval gates para writes sensibles. Sin esto la automatización no es vendible: si no se prueba el resultado, no se cobra. LIGA CON: Visibilidad de cronjobs (lo extiende), Agente WhatsApp (audita sus acciones), Automatizaciones avanzadas (Fase 3 lo exige para compliance)."
+      "info_clave": "Prompt + tools invocadas + resultado visible por tenant. Transparencia total de lo que hace el agente, inspirado en el producto 'Twenty'. Approval gates para writes sensibles. Sin esto la automatización no es vendible: si no se prueba el resultado, no se cobra. LIGA CON: Visibilidad de cronjobs (lo extiende), Agente WhatsApp (audita sus acciones), Automatizaciones avanzadas (Fase 3 lo exige para compliance).",
+      "puntos": 0,
+      "sprint": "backlog"
     },
     {
       "id": "ag-proactive-layer",
@@ -452,7 +540,9 @@
       "responsable": "Fabián y Dante",
       "eta": "Q4 2026",
       "figma_url": "",
-      "info_clave": "Observa patrones de uso del tenant (reportes mensuales, ciclos de cobranza) para aprender automáticamente y generar cronjobs proactivos. Al inicio y final de periodos clave sugiere y ejecuta cálculos de negocio, recordatorios y generación de documentos sin intervención manual. El corazón del moat: Colossu como empleado proactivo. LIGA CON: Skills y cronjobs (los genera), Learning Loop (Fase 3 lo lleva a autonomía total)."
+      "info_clave": "Observa patrones de uso del tenant (reportes mensuales, ciclos de cobranza) para aprender automáticamente y generar cronjobs proactivos. Al inicio y final de periodos clave sugiere y ejecuta cálculos de negocio, recordatorios y generación de documentos sin intervención manual. El corazón del moat: Colossu como empleado proactivo. LIGA CON: Skills y cronjobs (los genera), Learning Loop (Fase 3 lo lleva a autonomía total).",
+      "puntos": 0,
+      "sprint": "backlog"
     },
     {
       "id": "ag-dashboards",
@@ -463,7 +553,9 @@
       "responsable": "Fabián y Dante",
       "eta": "Exploración",
       "figma_url": "",
-      "info_clave": "El agente genera UI ad hoc: visualizaciones dinámicas vía json_renderer o frameworks internos basadas en consultas naturales del usuario. Paneles personalizados con métricas clave sin desarrollo manual. EXPLORACIÓN — despriorizado hasta consolidar la fundación de conocimiento. LIGA CON: Knowledge base (fuente de datos), Custom fields (campos que visualiza)."
+      "info_clave": "El agente genera UI ad hoc: visualizaciones dinámicas vía json_renderer o frameworks internos basadas en consultas naturales del usuario. Paneles personalizados con métricas clave sin desarrollo manual. EXPLORACIÓN — despriorizado hasta consolidar la fundación de conocimiento. LIGA CON: Knowledge base (fuente de datos), Custom fields (campos que visualiza).",
+      "puntos": 0,
+      "sprint": "backlog"
     },
     {
       "id": "ag-agentes-verticales",
@@ -474,7 +566,9 @@
       "responsable": "Fabián y Dante",
       "eta": "Q4 2026",
       "figma_url": "",
-      "info_clave": "Agentes especializados por área funcional (finanzas, cobranza, marketing, riesgos contractuales, pipeline de leads) que operan con conocimiento profundo del contexto vertical. Mejoran precisión y relevancia de respuestas y automatizaciones en cada flujo. LIGA CON: Knowledge base (su contexto), Proactive layer (los activa)."
+      "info_clave": "Agentes especializados por área funcional (finanzas, cobranza, marketing, riesgos contractuales, pipeline de leads) que operan con conocimiento profundo del contexto vertical. Mejoran precisión y relevancia de respuestas y automatizaciones en cada flujo. LIGA CON: Knowledge base (su contexto), Proactive layer (los activa).",
+      "puntos": 0,
+      "sprint": "backlog"
     },
     {
       "id": "w1-contratos-filtros",
@@ -485,7 +579,9 @@
       "responsable": "Gabriel",
       "eta": "Q3 2026",
       "figma_url": "contratos-tabla.html",
-      "info_clave": "Mejora de la tabla de contratos: filtros por estado y vista segregada. El estado 'Cerrado' es el único terminal que sale de la vista operativa al tab Histórico. Modal unificado (contrato nuevo + convenio modificatorio). LIGA CON: Contratos + ContractsAI/OCR (extiende el módulo base de W0)."
+      "info_clave": "Mejora de la tabla de contratos: filtros por estado y vista segregada. El estado 'Cerrado' es el único terminal que sale de la vista operativa al tab Histórico. Modal unificado (contrato nuevo + convenio modificatorio). LIGA CON: Contratos + ContractsAI/OCR (extiende el módulo base de W0).",
+      "puntos": 12,
+      "sprint": "s2"
     }
   ]
 }
