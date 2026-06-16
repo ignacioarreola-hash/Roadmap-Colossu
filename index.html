@@ -129,6 +129,36 @@
   .errbox{color:var(--soft)}
   .errbox code{background:var(--bg-2);border:1px solid var(--border);padding:2px 7px;border-radius:5px;font-size:13px}
 
+  /* SPRINTS */
+  .sprint-sec{margin-bottom:34px}
+  .sprint-head{display:flex;align-items:baseline;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:4px}
+  .sprint-head h2{font-size:20px;letter-spacing:-.02em;font-weight:600}
+  .sprint-head .stot{font-size:12.5px;color:var(--faint);font-weight:500}
+  .sprint-sub{font-size:12.5px;color:var(--faint);margin-bottom:18px}
+  .cap-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+  @media(max-width:900px){.cap-grid{grid-template-columns:1fr}}
+  .cap-col{background:var(--bg-2);border:1px solid var(--border);border-radius:15px;padding:18px}
+  .cap-h{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px}
+  .cap-h .who{font-size:14px;font-weight:600;letter-spacing:-.01em}
+  .cap-h .sec{font-size:10.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--faint)}
+  .cap-bar{height:8px;border-radius:5px;background:#E8E8E8;overflow:hidden;margin:10px 0 6px}
+  .cap-fill{height:100%;border-radius:5px;background:var(--ink);transition:width .4s ease}
+  .cap-fill.over{background:#B91C1C}
+  .cap-nums{display:flex;justify-content:space-between;font-size:12px;margin-bottom:14px}
+  .cap-nums .used{font-weight:700;color:var(--ink)}
+  .cap-nums .used.over{color:#B91C1C}
+  .cap-nums .max{color:var(--faint)}
+  .cap-tasks{display:flex;flex-direction:column;gap:8px}
+  .cap-task{display:flex;align-items:center;gap:10px;padding:10px 12px;background:#fff;border:1px solid var(--border-2);border-radius:9px;cursor:pointer;transition:all .15s ease}
+  .cap-task:hover{border-color:var(--border-strong);box-shadow:var(--shadow)}
+  .cap-task .pts{flex-shrink:0;min-width:34px;height:24px;border-radius:6px;background:var(--ink);color:#fff;font-size:11.5px;font-weight:700;display:grid;place-items:center}
+  .cap-task .pts.zero{background:var(--bg-2);color:var(--faint);border:1px solid var(--border-2)}
+  .cap-task .tnm{flex:1;font-size:13px;font-weight:500;line-height:1.25}
+  .cap-task .tst{flex-shrink:0;font-size:9px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;padding:2px 6px;border-radius:5px}
+  .tst.todo{color:var(--soft);background:var(--st-todo-bg)} .tst.doing{color:#fff;background:var(--ink)} .tst.done{color:var(--soft);background:var(--st-done-bg)}
+  .cap-empty{font-size:12.5px;color:var(--faint);font-style:italic;padding:8px 2px}
+  .sprint-note{font-size:12px;color:var(--amber);background:var(--amber-bg);border:1px solid #F3E2C9;border-radius:10px;padding:11px 14px;margin-bottom:22px}
+
   footer{max-width:1300px;margin:0 auto;padding:30px;border-top:1px solid var(--border);font-size:12px;color:var(--faint);display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px}
   .legend{display:flex;gap:15px;flex-wrap:wrap}
   .legend span{display:flex;align-items:center;gap:6px}
@@ -147,6 +177,7 @@
     <div class="toggle" id="toggle">
       <button class="active" data-v="kanban">Kanban</button>
       <button data-v="waves">Waves</button>
+      <button data-v="sprints">Sprints</button>
     </div>
   </div>
 </header>
@@ -177,6 +208,8 @@
   </div>
 
   <div class="view" id="view-waves"></div>
+
+  <div class="view" id="view-sprints"></div>
 </main>
 
 <div class="overlay" id="overlay">
@@ -192,6 +225,8 @@
         <div class="k">Responsable</div><div class="v" id="mResp"></div>
         <div class="k">ETA</div><div class="v" id="mEta"></div>
         <div class="k">Estatus</div><div class="v" id="mStatus"></div>
+        <div class="k">Puntos</div><div class="v" id="mPuntos"></div>
+        <div class="k">Sprint</div><div class="v" id="mSprint"></div>
       </div>
       <div class="m-info">
         <div class="k">Información clave · qué sigue, bloqueos y contexto</div>
@@ -283,7 +318,51 @@
     });
   }
 
-  const renderAll = () => { renderKanban(); renderWaves(); };
+  function renderSprints(){
+    const host = document.getElementById("view-sprints");
+    host.innerHTML = "";
+    const meta = DATA.meta.sprints;
+    if(!meta){ host.innerHTML = '<div class="cap-empty">No hay configuración de sprints en el JSON.</div>'; return; }
+    const cap = meta.capacidad_por_persona || 50;
+    const sectorResp = { producto:"producto", agentica:"agentica", plataforma:"plataforma" };
+    const respName = meta.responsables || {};
+    const sprintOrder = ["s1","s2"]; // backlog/entregado no se muestran como capacidad
+
+    host.insertAdjacentHTML("beforeend",
+      `<div class="sprint-note">Estimaciones iniciales (placeholder). Ajústalas en planning: edita <strong>puntos</strong> y <strong>sprint</strong> en roadmap.json. 5 pts = 1 día · sprint 2 semanas · tope ${cap} pts/persona.</div>`);
+
+    sprintOrder.forEach(sk => {
+      const tasks = DATA.proyectos.filter(p => p.sprint === sk && visible(p));
+      const totalPts = tasks.reduce((a,p)=>a+(p.puntos||0),0);
+      let cols = "";
+      ["producto","agentica","plataforma"].forEach(sec => {
+        const secTasks = tasks.filter(p => p.sector === sec);
+        const used = secTasks.reduce((a,p)=>a+(p.puntos||0),0);
+        const pct = Math.min(100, Math.round(used/cap*100));
+        const over = used > cap;
+        const taskRows = secTasks.length
+          ? secTasks.map(p => {
+              const st = STATUS[p.estatus] || STATUS["Por hacer"];
+              return `<div class="cap-task" data-id="${esc(p.id)}">
+                <span class="pts ${p.puntos?'':'zero'}">${p.puntos||0}</span>
+                <span class="tnm">${esc(p.titulo)}</span>
+                <span class="tst ${st.key}">${esc(p.estatus)}</span></div>`;
+            }).join("")
+          : `<div class="cap-empty">Sin tareas asignadas</div>`;
+        cols += `<div class="cap-col">
+          <div class="cap-h"><span class="who">${esc(respName[sec]||SECTOR_NAMES[sec])}</span>
+            <span class="sec">${esc(SECTOR_NAMES[sec])}</span></div>
+          <div class="cap-bar"><div class="cap-fill ${over?'over':''}" style="width:${pct}%"></div></div>
+          <div class="cap-nums"><span class="used ${over?'over':''}">${used} pts${over?' · sobrecarga':''}</span><span class="max">/ ${cap}</span></div>
+          <div class="cap-tasks">${taskRows}</div></div>`;
+      });
+      host.insertAdjacentHTML("beforeend", `<div class="sprint-sec">
+        <div class="sprint-head"><h2>${esc(meta.lista[sk]||sk)}</h2><span class="stot">${totalPts} pts en total</span></div>
+        <div class="cap-grid">${cols}</div></div>`);
+    });
+  }
+
+  const renderAll = () => { renderKanban(); renderWaves(); renderSprints(); };
 
   function openModal(id){
     const p = DATA.proyectos.find(x => x.id === id);
@@ -297,6 +376,9 @@
     document.getElementById("mResp").textContent = p.responsable || "—";
     document.getElementById("mEta").textContent = p.eta || "—";
     document.getElementById("mStatus").textContent = p.estatus || "—";
+    document.getElementById("mPuntos").textContent = (p.puntos!=null && p.puntos!=="") ? (p.puntos + " pts") : "Sin estimar";
+    const sprintLabel = (DATA.meta.sprints && DATA.meta.sprints.lista && DATA.meta.sprints.lista[p.sprint]) || p.sprint || "—";
+    document.getElementById("mSprint").textContent = sprintLabel;
     document.getElementById("mInfo").textContent = p.info_clave || "Sin información clave registrada.";
 
     const docsWrap = document.getElementById("mDocsWrap");
@@ -321,7 +403,7 @@
   }
   const closeModal = () => document.getElementById("overlay").classList.remove("show");
 
-  document.addEventListener("click", e => { const c = e.target.closest(".card"); if(c) openModal(c.dataset.id); });
+  document.addEventListener("click", e => { const c = e.target.closest(".card, .cap-task"); if(c) openModal(c.dataset.id); });
   document.getElementById("modalClose").addEventListener("click", closeModal);
   document.getElementById("overlay").addEventListener("click", e => { if(e.target.id === "overlay") closeModal(); });
   document.addEventListener("keydown", e => { if(e.key === "Escape") closeModal(); });
@@ -332,6 +414,7 @@
     document.querySelectorAll("#toggle button").forEach(b => b.classList.toggle("active", b.dataset.v === activeView));
     document.getElementById("view-kanban").classList.toggle("show", activeView === "kanban");
     document.getElementById("view-waves").classList.toggle("show", activeView === "waves");
+    document.getElementById("view-sprints").classList.toggle("show", activeView === "sprints");
   });
 
   document.getElementById("filters").addEventListener("click", e => {
