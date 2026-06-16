@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tabla de Contratos · Filtros y Estados · Prototipo Colossu</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&family=DM+Serif+Display&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'DM Sans',sans-serif;background:#FFFFFF;color:#0A0A0A;-webkit-font-smoothing:antialiased}
+  #root{min-height:100vh}
+  .proto-bar{position:sticky;top:0;z-index:200;background:rgba(255,255,255,.85);backdrop-filter:blur(10px);border-bottom:1px solid #ECECEC;padding:10px 20px;display:flex;align-items:center;gap:12px;font-size:13px}
+  .proto-bar a{color:#0A0A0A;font-weight:600;text-decoration:none;display:inline-flex;align-items:center;gap:6px}
+  .proto-bar a:hover{text-decoration:underline}
+  .proto-bar .sep{color:#C4C4C8}
+  .proto-bar .tt{color:#5A5A5C;font-weight:500}
+  .proto-bar .tag{margin-left:auto;font-size:11px;font-weight:600;color:#0A0A0A;background:#F4F4F4;border:1px solid #E2E2E2;padding:3px 9px;border-radius:20px}
+</style>
+</head>
+<body>
+<div class="proto-bar">
+  <a href="index.html">← Volver al roadmap</a>
+  <span class="sep">·</span>
+  <span class="tt">Tabla de Contratos · Filtros y Estados</span>
+  <span class="tag">Prototipo</span>
+</div>
+<div id="root"></div>
+<script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<script type="text/babel" data-presets="react">
+const { useState, useMemo, useEffect, useRef, useCallback } = React;
+
+
+// ── Estados reales de Colossu ────────────────────────────────────────────────
+// Operativos: tab "Activos", visibles en "Todos" y filtrables.
+// Terminal: "cerrado" — SOLO en tab "Histórico". Nunca en operativo ni en "Todos".
+const ST = {
+  validar:    { label: "Validar datos extraídos", bg: "#F5F3FF", text: "#5B21B6", dot: "#8B5CF6", border: "#DDD6FE", op: true },
+  pendiente:  { label: "Pendiente",               bg: "#EFF6FF", text: "#1E40AF", dot: "#3B82F6", border: "#BFDBFE", op: true },
+  activo:     { label: "Activo",                  bg: "#ECFDF5", text: "#065F46", dot: "#10B981", border: "#A7F3D0", op: true },
+  ganado:     { label: "Ganado",                  bg: "#FEFCE8", text: "#854D0E", dot: "#EAB308", border: "#FEF08A", op: true },
+  cerrado:    { label: "Cerrado",                 bg: "#F3F4F6", text: "#4B5563", dot: "#9CA3AF", border: "#E5E7EB", op: false },
+};
+const OP_ORDER = ["validar", "pendiente", "activo", "ganado"];
+
+// ── Mock (de la vista actual + cerrados para demostrar segregación) ───────────
+const DATA = [
+  { id:70, empresa:"Nova Cowork Sa De Cv", inicial:"NC", espacio:null, meses:35, periodo:"01/06/2026 - 31/05/2029", m2:null, sqm:null, renta:156000, divisa:"MXN", progreso:0, estado:"validar" },
+  { id:69, empresa:"Nova Cowork Sa De Cv", inicial:"NC", espacio:"Torre Centauri - Espacio 2-01", meses:35, periodo:"01/06/2026 - 31/05/2029", m2:"1,200 m²", sqm:130, renta:156000, divisa:"MXN", progreso:0, estado:"activo" },
+  { id:68, empresa:"Inquilino De Majo Sa De Cv", inicial:"ID", espacio:null, meses:35, periodo:"02/06/2026 - 01/06/2029", m2:null, sqm:null, renta:180000, divisa:"MXN", progreso:0, estado:"validar" },
+  { id:67, empresa:"Inquilino de Majo", inicial:"ID", espacio:"Torre Majo Test - Piso 1, oficina 1", meses:35, periodo:"01/06/2026 - 02/06/2029", m2:"400 m²", sqm:450, renta:180000, divisa:"MXN", progreso:0, estado:"activo" },
+  { id:65, empresa:"Vortex Labs SA de CV", inicial:"VL", espacio:null, meses:12, periodo:"01/05/2026 - 30/04/2027", m2:null, sqm:null, renta:72000, divisa:"MXN", progreso:0, estado:"pendiente" },
+  { id:64, empresa:"Aurora Events, S.A. de C.V.", inicial:"AE", espacio:"Complejo Hexa Vértice - Terreno Azotea S…", meses:5, periodo:"01/06/2026 - 30/11/2026", m2:"600 m²", sqm:80, renta:48000, divisa:"MXN", progreso:1, estado:"activo" },
+  { id:63, empresa:"Mistral Foods, S.A.P.I. de C.V.", inicial:"MF", espacio:"Complejo Hexa Vértice - Loft Residencial …", meses:37, periodo:"01/08/2026 - 31/07/2029", m2:"278 m²", sqm:233.81, renta:65000, divisa:"MXN", progreso:0, estado:"pendiente" },
+  { id:62, empresa:"Nyxa Capital International, S.A. de C.V.", inicial:"NC", espacio:"Complejo Hexa Vértice - Oficina P1-A", meses:35, periodo:"01/06/2026 - 31/05/2029", m2:"550 m²", sqm:0, renta:0, divisa:"MXN", progreso:0, estado:"ganado" },
+  { id:61, empresa:"Vela Studios, S. de R.L. de C.V.", inicial:"VS", espacio:"Complejo Hexa Vértice - Local PB-A", meses:24, periodo:"01/07/2026 - 30/06/2028", m2:"380 m²", sqm:500, renta:190000, divisa:"MXN", progreso:0, estado:"pendiente" },
+  { id:60, empresa:"Aether Robotics, S.A. de C.V.", inicial:"AR", espacio:null, meses:50, periodo:"01/09/2026 - 31/08/2030", m2:null, sqm:null, renta:850000, divisa:"MXN", progreso:0, estado:"validar" },
+  { id:58, empresa:"Petco México Comercial Sa De Cv", inicial:"PM", espacio:"Plaza Cubica - PB-05", meses:54, periodo:"01/01/2026 - 31/12/2030", m2:"500 m²", sqm:638, renta:319000, divisa:"MXN", progreso:8, estado:"activo" },
+  { id:56, empresa:"Nova Cowork Sa De Cv", inicial:"NC", espacio:"Torre Centauri - Espacio 2-01", meses:35, periodo:"01/06/2026 - 31/05/2029", m2:"1,200 m²", sqm:130, renta:156000, divisa:"MXN", progreso:0, estado:"ganado" },
+  // ── Cerrados (histórico) ──
+  { id:42, empresa:"Comercializadora Ibérica SA de CV", inicial:"CI", espacio:"Plaza Cubica - L-12", meses:24, periodo:"01/01/2023 - 31/12/2024", m2:"320 m²", sqm:420, renta:134000, divisa:"MXN", progreso:100, estado:"cerrado" },
+  { id:38, empresa:"Grupo Helios S. de R.L.", inicial:"GH", espacio:"Torre Centauri - Oficina P3-B", meses:36, periodo:"01/03/2021 - 28/02/2024", m2:"480 m²", sqm:310, renta:148800, divisa:"MXN", progreso:100, estado:"cerrado" },
+  { id:31, empresa:"Mercantil del Norte SA", inicial:"MN", espacio:"Complejo Hexa Vértice - Local PB-C", meses:18, periodo:"01/06/2022 - 30/11/2023", m2:"210 m²", sqm:560, renta:117600, divisa:"MXN", progreso:100, estado:"cerrado" },
+];
+
+const $f = n => n == null ? "-" : "$ " + n.toLocaleString("es-MX");
+const Avatar = ({ ini }) => {
+  const pal = { NC:"#6366F1", ID:"#0EA5E9", VL:"#9CA3AF", AE:"#F59E0B", MF:"#EC4899", VS:"#8B5CF6", AR:"#14B8A6", PM:"#10B981", CI:"#64748B", GH:"#64748B", MN:"#64748B" };
+  return <span style={{width:24,height:24,borderRadius:"50%",background:(pal[ini]||"#9CA3AF")+"22",color:pal[ini]||"#6B7280",fontSize:9,fontWeight:700,display:"inline-flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>{ini}</span>;
+};
+const Badge = ({ estado }) => {
+  const s = ST[estado];
+  return <span style={{display:"inline-flex",alignItems:"center",gap:6,padding:"3px 10px",borderRadius:20,background:s.bg,color:s.text,border:`1px solid ${s.border}`,fontSize:12,fontWeight:500,whiteSpace:"nowrap"}}>
+    <span style={{width:6,height:6,borderRadius:"50%",background:s.dot}}/>{s.label}
+  </span>;
+};
+
+// Layout original de Contratos. Anchos FIJOS (no fr) salvo Empresa y Espacios,
+// que son las dos únicas flexibles con minmax para que nunca colapsen.
+// ck  ID  Empresa     Espacios    Periodo  m²rent  $/m²  Renta  Divisa  Progreso  Estado  ⋯
+const G = "28px 44px minmax(180px,1.4fr) minmax(150px,1.2fr) 150px 86px 64px 100px 56px 86px 178px 32px";
+const HEAD = ["ID","Empresa","Espacios","Periodo","m² rentados","$/m²","Renta","Divisa","Progreso","Estado",""];
+const RIGHT = new Set(["m² rentados","$/m²","Renta"]);
+
+function ContratosTabla() {
+  const [tab, setTab] = useState("activos");
+  const [filter, setFilter] = useState("todos");
+  const [iva, setIva] = useState(false);
+  const [selected, setSelected] = useState(new Set());
+
+  const opData = useMemo(() => DATA.filter(d => ST[d.estado].op), []);
+  const histData = useMemo(() => DATA.filter(d => !ST[d.estado].op), []);
+  const counts = useMemo(() => {
+    const c = {}; OP_ORDER.forEach(k => c[k] = opData.filter(d => d.estado === k).length); return c;
+  }, [opData]);
+
+  const rows = useMemo(() => {
+    if (tab === "historico") return histData;
+    if (filter === "todos") return opData;
+    return opData.filter(d => d.estado === filter);
+  }, [tab, filter, opData, histData]);
+
+  const toggle = id => setSelected(s => { const n = new Set(s); n.has(id) ? n.delete(id) : n.add(id); return n; });
+  const allSel = rows.length > 0 && rows.every(r => selected.has(r.id));
+  const toggleAll = () => setSelected(allSel ? new Set() : new Set(rows.map(r => r.id)));
+
+  return <div style={{fontFamily:"'DM Sans',-apple-system,sans-serif",background:"#FFFFFF",minHeight:"100vh",padding:"18px 22px"}}>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+
+    <h1 style={{fontSize:21,fontWeight:700,color:"#111",margin:"0 0 16px"}}>Contratos</h1>
+
+    {/* ── Tabs Activos / Histórico (patrón Attio: cambian el dataset) ── */}
+    <div style={{display:"flex",alignItems:"center",gap:26,borderBottom:"1px solid #ECECEC",marginBottom:14}}>
+      {[["activos","Activos",opData.length],["historico","Histórico",histData.length]].map(([k,label,n]) =>
+        <button key={k} onClick={()=>{setTab(k);setFilter("todos");setSelected(new Set());}}
+          style={{background:"none",border:"none",borderBottom:tab===k?"2px solid #111":"2px solid transparent",padding:"7px 0",marginBottom:-1,cursor:"pointer",fontSize:13.5,fontWeight:tab===k?600:500,color:tab===k?"#111":"#888",display:"flex",alignItems:"center",gap:7}}>
+          {label}
+          <span style={{background:tab===k?"#111":"#EEE",color:tab===k?"white":"#888",fontSize:10.5,fontWeight:600,padding:"1px 7px",borderRadius:10,minWidth:18,textAlign:"center"}}>{n}</span>
+        </button>
+      )}
+    </div>
+
+    {/* ── Toolbar (estilo original: izquierda filtros, derecha acciones) ── */}
+    <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12,gap:12,flexWrap:"wrap"}}>
+      <div style={{display:"flex",gap:8,alignItems:"center"}}>
+        <button style={{display:"inline-flex",alignItems:"center",gap:6,padding:"6px 12px",borderRadius:8,border:"1px solid #E5E7EB",background:"white",fontSize:12,color:"#444",cursor:"pointer",fontWeight:500}}>
+          <span style={{fontSize:12}}>⛃</span> Filtros
+        </button>
+        <button style={{padding:"6px 11px",borderRadius:8,border:"1px solid #E5E7EB",background:"white",fontSize:13,color:"#888",cursor:"pointer"}}>+</button>
+        <button style={{padding:"6px 11px",borderRadius:8,border:"1px solid #E5E7EB",background:"white",fontSize:13,color:"#888",cursor:"pointer"}}>⋯</button>
+      </div>
+      <div style={{display:"flex",alignItems:"center",gap:8}}>
+        <div style={{display:"flex",background:"#F3F4F6",borderRadius:8,padding:2}}>
+          <button onClick={()=>setIva(true)} style={{padding:"4px 12px",borderRadius:6,border:"none",fontSize:12,fontWeight:500,cursor:"pointer",background:iva?"white":"transparent",color:iva?"#111":"#888"}}>Con IVA</button>
+          <button onClick={()=>setIva(false)} style={{padding:"4px 12px",borderRadius:6,border:"none",fontSize:12,fontWeight:500,cursor:"pointer",background:!iva?"white":"transparent",color:!iva?"#111":"#888"}}>Sin IVA</button>
+        </div>
+        <button style={{padding:"6px 12px",borderRadius:8,border:"1px solid #E5E7EB",background:"white",fontSize:12,color:"#444",cursor:"pointer"}}>Columnas ⌄</button>
+        <button style={{padding:"6px 12px",borderRadius:8,border:"1px solid #E5E7EB",background:"white",fontSize:12,color:"#444",cursor:"pointer"}}>Exportar</button>
+        {tab==="activos" && <button style={{padding:"7px 15px",borderRadius:8,background:"#2563EB",color:"white",border:"none",fontSize:12,fontWeight:600,cursor:"pointer"}}>+ Crear contrato</button>}
+      </div>
+    </div>
+
+    {/* ── Quick-filter por estado (solo Activos) / leyenda (Histórico) ── */}
+    {tab==="activos" ? (
+      <div style={{display:"flex",gap:6,alignItems:"center",flexWrap:"wrap",marginBottom:12}}>
+        <button onClick={()=>setFilter("todos")}
+          style={{padding:"5px 13px",borderRadius:8,border:`1px solid ${filter==="todos"?"#111":"#E5E7EB"}`,background:filter==="todos"?"#111":"white",color:filter==="todos"?"white":"#555",fontSize:12,fontWeight:500,cursor:"pointer"}}>
+          Todos <span style={{opacity:.6,marginLeft:3}}>{opData.length}</span>
+        </button>
+        {OP_ORDER.map(k => {
+          const s = ST[k], on = filter===k;
+          return <button key={k} onClick={()=>setFilter(k)}
+            style={{padding:"5px 12px",borderRadius:8,border:`1px solid ${on?s.dot:"#E5E7EB"}`,background:on?s.bg:"white",color:on?s.text:"#666",fontSize:12,fontWeight:on?600:500,cursor:"pointer",display:"inline-flex",alignItems:"center",gap:6}}>
+            <span style={{width:6,height:6,borderRadius:"50%",background:s.dot}}/>
+            {s.label}<span style={{opacity:.55,marginLeft:1}}>{counts[k]}</span>
+          </button>;
+        })}
+      </div>
+    ) : (
+      <div style={{fontSize:12.5,color:"#888",display:"inline-flex",alignItems:"center",gap:8,marginBottom:12,padding:"6px 12px",background:"#FAFAFA",border:"1px solid #F0F0F0",borderRadius:8}}>
+        <span style={{width:6,height:6,borderRadius:"50%",background:ST.cerrado.dot}}/>
+        Contratos cerrados — solo lectura · {histData.length} registros
+      </div>
+    )}
+
+    {/* ── TABLA (layout original, columnas alineadas) ── */}
+    <div style={{background:"white",borderRadius:10,border:"1px solid #ECECEC",overflow:"hidden"}}>
+     <div style={{overflowX:"auto"}}>
+      <div style={{minWidth:1080}}>
+      <div style={{display:"grid",gridTemplateColumns:G,padding:"10px 16px",background:"#FAFAFA",borderBottom:"1px solid #ECECEC",gap:10,alignItems:"center"}}>
+        <input type="checkbox" checked={allSel} onChange={toggleAll} style={{cursor:"pointer"}}/>
+        {HEAD.map((h,i)=>
+          <div key={i} style={{fontSize:9.5,fontWeight:600,color:"#9CA3AF",textTransform:"uppercase",letterSpacing:.4,textAlign:RIGHT.has(h)?"right":"left",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{h}</div>
+        )}
+      </div>
+
+      {rows.map(r => {
+        const renta = iva && r.renta != null ? Math.round(r.renta * 1.16) : r.renta;
+        const sel = selected.has(r.id);
+        return <div key={r.id} style={{display:"grid",gridTemplateColumns:G,padding:"13px 16px",borderBottom:"1px solid #F4F4F5",gap:10,alignItems:"center",background:sel?"#F8FAFF":"white"}}>
+          <input type="checkbox" checked={sel} onChange={()=>toggle(r.id)} style={{cursor:"pointer"}}/>
+          <div style={{fontSize:12.5,color:"#9CA3AF",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{r.id}</div>
+          <div style={{display:"flex",alignItems:"center",gap:9,minWidth:0}}>
+            <Avatar ini={r.inicial}/>
+            <span style={{fontSize:13,fontWeight:500,color:"#2563EB",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{r.empresa}</span>
+          </div>
+          <div style={{minWidth:0}}>{r.espacio
+            ? <span style={{fontSize:11.5,padding:"4px 9px",borderRadius:7,background:"#F3F4F6",color:"#4B5563",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",display:"block",maxWidth:"100%"}}>{r.espacio}</span>
+            : <span style={{fontSize:11.5,padding:"4px 9px",borderRadius:7,background:"#FAFAFA",color:"#9CA3AF",display:"inline-block"}}>No asignado</span>}
+          </div>
+          <div style={{fontSize:12,color:"#374151",minWidth:0,overflow:"hidden"}}>
+            <div style={{fontWeight:500,whiteSpace:"nowrap"}}>{r.meses != null ? `${r.meses} meses` : "Vencido"}</div>
+            <div style={{fontSize:10.5,color:"#9CA3AF",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{r.periodo}</div>
+          </div>
+          <div style={{fontSize:12,color:"#374151",textAlign:"right"}}>{r.m2 || "-"}</div>
+          <div style={{fontSize:12,color:"#374151",textAlign:"right"}}>{r.sqm != null ? `$ ${r.sqm}` : "-"}</div>
+          <div style={{fontSize:12,fontWeight:600,color:"#111",textAlign:"right"}}>{$f(renta)}</div>
+          <div><span style={{fontSize:10.5,padding:"3px 8px",borderRadius:6,background:"#ECFDF5",color:"#047857",fontWeight:600}}>{r.divisa}</span></div>
+          <div style={{display:"flex",alignItems:"center",gap:6}}>
+            <div style={{width:40,height:5,borderRadius:3,background:"#F3F4F6",overflow:"hidden"}}>
+              <div style={{width:`${r.progreso}%`,height:"100%",background:r.progreso===100?"#10B981":"#3B82F6"}}/>
+            </div>
+            <span style={{fontSize:10,color:"#9CA3AF"}}>{r.progreso}%</span>
+          </div>
+          <div><Badge estado={r.estado}/></div>
+          <div style={{textAlign:"center",color:"#9CA3AF",cursor:"pointer",fontSize:17}}>⋯</div>
+        </div>;
+      })}
+
+      {rows.length === 0 && <div style={{padding:"44px 16px",textAlign:"center",color:"#9CA3AF",fontSize:13}}>Sin contratos en este filtro</div>}
+      </div>
+     </div>
+    </div>
+
+    {selected.size > 0 && <div style={{marginTop:12,fontSize:12,color:"#666"}}>{selected.size} seleccionado(s)</div>}
+  </div>;
+}
+
+
+ReactDOM.createRoot(document.getElementById("root")).render(<ContratosTabla />);
+</script>
+</body>
+</html>
