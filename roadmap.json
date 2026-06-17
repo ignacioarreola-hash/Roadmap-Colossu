@@ -138,14 +138,14 @@
     },
     {
       "id": "w1-cobranza-dash",
-      "titulo": "Cobranza Dashboard v1",
+      "titulo": "Renovación de vista de Cobranza",
       "wave": "w1",
       "sector": "producto",
       "estatus": "En proceso",
       "responsable": "Gabriel",
       "eta": "Q3 2026",
-      "figma_url": "",
-      "info_clave": "Vista plana rediseñada con tabs Cargos · Ventas reportadas. KPIs dinámicos. Estados de ventas separados de estados de cargos.",
+      "figma_url": "cobranza-dashboard.html",
+      "info_clave": "Renovación de la vista de cobranza: tabla rediseñada con tabs Cargos · Ventas reportadas, KPIs dinámicos, filtros y estados de cargo separados de estados de venta. LIGA CON: Renta Variable (consume su lógica de RMG), Contratos · Filtros y Estados (comparten patrón de vista).",
       "puntos": 15,
       "sprint": "s1"
     },
@@ -572,7 +572,7 @@
     },
     {
       "id": "w1-contratos-filtros",
-      "titulo": "Contratos · Filtros y Estados",
+      "titulo": "Renovación de vista de Contratos",
       "wave": "w1",
       "sector": "producto",
       "estatus": "En proceso",
@@ -582,6 +582,45 @@
       "info_clave": "Mejora de la tabla de contratos: filtros por estado y vista segregada. El estado 'Cerrado' es el único terminal que sale de la vista operativa al tab Histórico. Modal unificado (contrato nuevo + convenio modificatorio). LIGA CON: Contratos + ContractsAI/OCR (extiende el módulo base de W0).",
       "puntos": 12,
       "sprint": "s2"
+    },
+    {
+      "id": "w1-unificar-modal",
+      "titulo": "Unificar Modal",
+      "wave": "w1",
+      "sector": "producto",
+      "estatus": "En proceso",
+      "responsable": "Gabriel Tello",
+      "eta": "Q3 2026",
+      "figma_url": "unificar-modal.pdf",
+      "info_clave": "Modal unificado que combina creación de contrato nuevo y convenio modificatorio en un solo flujo, con cards de selección visibles. Incluye: subida de PDF con pre-llenado por IA, flujo de 3 pasos (inquilino/vigencia → condiciones de pago → revisión), búsqueda y ligado a contrato base para convenios, detección de campos modificados vs. contrato base, y alerta de convenio duplicado. LIGA CON: Renovación de vista de Contratos (comparten el flujo de contratos), ContractsAI/OCR (el pre-llenado por IA).",
+      "puntos": 8,
+      "sprint": "s1"
+    },
+    {
+      "id": "arq-notificaciones",
+      "titulo": "Motor de Notificaciones",
+      "wave": "w1",
+      "sector": "plataforma",
+      "estatus": "En proceso",
+      "responsable": "Josue Contreras (Mosh)",
+      "eta": "Q3 2026",
+      "figma_url": "",
+      "info_clave": "Motor de notificaciones que conecta eventos de los módulos (cobranza, contratos, tareas) con los canales de aviso. Base sobre la que se montan recordatorios y la capa proactiva. LIGA CON: Notan Hub (dispara sus tareas), Cobranza (envía recordatorios de pago).",
+      "puntos": 12,
+      "sprint": "s1"
+    },
+    {
+      "id": "arq-bugs",
+      "titulo": "Bugs P0/P1",
+      "wave": "w1",
+      "sector": "plataforma",
+      "estatus": "En proceso",
+      "responsable": "Josue Contreras (Mosh)",
+      "eta": "Continuo",
+      "figma_url": "",
+      "info_clave": "Corrección continua de bugs críticos y altos (P0/P1) reportados por QA. Epic SAAS-1463. Escala Crítica/Alta/Media/Baja → Highest/High/Medium/Low.",
+      "puntos": 10,
+      "sprint": "s1"
     }
   ]
 }
