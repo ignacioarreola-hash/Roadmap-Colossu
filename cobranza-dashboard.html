@@ -1,0 +1,1675 @@
+<!DOCTYPE html>
+<html lang="es"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Renovación de vista de Cobranza · Prototipo Colossu</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&family=DM+Serif+Display&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'DM Sans',sans-serif;background:#FFFFFF;color:#0A0A0A;-webkit-font-smoothing:antialiased}
+#root{min-height:100vh}
+.proto-bar{position:sticky;top:0;z-index:200;background:rgba(255,255,255,.85);backdrop-filter:blur(10px);border-bottom:1px solid #ECECEC;padding:10px 20px;display:flex;align-items:center;gap:12px;font-size:13px}
+.proto-bar a{color:#0A0A0A;font-weight:600;text-decoration:none}.proto-bar a:hover{text-decoration:underline}
+.proto-bar .sep{color:#C4C4C8}.proto-bar .tt{color:#5A5A5C;font-weight:500}
+.proto-bar .tag{margin-left:auto;font-size:11px;font-weight:600;color:#0A0A0A;background:#F4F4F4;border:1px solid #E2E2E2;padding:3px 9px;border-radius:20px}
+.proto-err{padding:40px;text-align:center;color:#B91C1C;font-size:14px}
+</style></head><body>
+<div class="proto-bar"><a href="index.html">&larr; Volver al roadmap</a><span class="sep">&middot;</span><span class="tt">Renovación de vista de Cobranza</span><span class="tag">Prototipo</span></div>
+<div id="root"></div>
+<script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+<script>
+(function(){
+  function boot(){
+    try{
+      var React=window.React,ReactDOM=window.ReactDOM;
+      var useState=React.useState,useMemo=React.useMemo,useEffect=React.useEffect,useRef=React.useRef,useCallback=React.useCallback,useReducer=React.useReducer;
+      // ════════════════════════════════════════════════════════════
+      // VISTA GLOBAL DE COBRANZA — Dashboard agregado
+      // 2 pestañas: Cargos · Ventas reportadas
+      // Filtros avanzados por inquilino, espacio, categoría, estatus, etc
+      // ════════════════════════════════════════════════════════════
+      
+      // ════════════════════════════════════════════════════════════
+      // CONSTANTES
+      // ════════════════════════════════════════════════════════════
+      
+      const STATUS = {
+        paid: {
+          bg: "#EAF7EE",
+          fg: "#1F8546",
+          label: "Pagado"
+        },
+        partial: {
+          bg: "#F3E5F5",
+          fg: "#7B1FA2",
+          label: "Parcial"
+        },
+        due_soon: {
+          bg: "#EBF4FB",
+          fg: "#2563EB",
+          label: "Por vencer"
+        },
+        projected: {
+          bg: "#EBF4FB",
+          fg: "#2563EB",
+          label: "En cobranza"
+        },
+        overdue: {
+          bg: "#FBEAE9",
+          fg: "#C62828",
+          label: "En mora"
+        },
+        closed_no_overage: {
+          bg: "#F4F4F5",
+          fg: "#71717A",
+          label: "Sin diferencial"
+        }
+      };
+      const VENTAS_STATUS = {
+        pendiente: {
+          bg: "#FFF4E5",
+          fg: "#B26500",
+          label: "Pendiente"
+        },
+        reportado: {
+          bg: "#FEF3C7",
+          fg: "#92400E",
+          label: "Reportado"
+        },
+        aprobado: {
+          bg: "#EAF7EE",
+          fg: "#1F8546",
+          label: "Aprobado"
+        },
+        rechazado: {
+          bg: "#FBEAE9",
+          fg: "#C62828",
+          label: "Rechazado"
+        }
+      };
+      function mapToVentaStatus(report) {
+        if (report.status === "pending_submission") return "pendiente";
+        if (report.status === "pending_review") return "reportado";
+        if (report.status === "rejected") return "rechazado";
+        return "aprobado";
+      }
+      
+      // ════════════════════════════════════════════════════════════
+      // DATOS MOCK — 5 inquilinos, ~25 cargos, ~15 reportes de ventas
+      // ════════════════════════════════════════════════════════════
+      
+      const TENANTS = [{
+        id: "T1",
+        name: "Inquilino de Majo",
+        rfc: "IDM240115AB1",
+        short: "IM"
+      }, {
+        id: "T2",
+        name: "Inquilino De Majo SA de CV",
+        rfc: "IDM190620XY2",
+        short: "IM"
+      }, {
+        id: "T3",
+        name: "Aurora Events SA de CV",
+        rfc: "AEV250122H25",
+        short: "AE"
+      }, {
+        id: "T4",
+        name: "Mammut Pizza · WLP",
+        rfc: "WLP210511TP9",
+        short: "MP"
+      }, {
+        id: "T5",
+        name: "Inmobiliaria Bonacci SA",
+        rfc: "IBO190315KL8",
+        short: "IB"
+      }];
+      const SPACES = {
+        "T1": "Torre Majo Test · Piso 1, oficina 1",
+        "T2": "Plaza Cubica · P1-06",
+        "T3": "Torre Fibonacci · P1-01",
+        "T4": "Paseo Altozano · 2N-39",
+        "T5": "Plaza Insurgentes · L-302"
+      };
+      const CARGOS = [
+      // T1 — Inquilino de Majo
+      {
+        id: "C001",
+        tenantId: "T1",
+        concept: "Renta",
+        date: "2026-06-01",
+        total: 208800,
+        paid: 0,
+        pending: 208800,
+        status: "overdue"
+      }, {
+        id: "C002",
+        tenantId: "T1",
+        concept: "Renta",
+        date: "2026-05-01",
+        total: 208800,
+        paid: 0,
+        pending: 208800,
+        status: "overdue"
+      }, {
+        id: "C003",
+        tenantId: "T1",
+        concept: "Renta",
+        date: "2026-04-01",
+        total: 208800,
+        paid: 208800,
+        pending: 0,
+        status: "paid"
+      }, {
+        id: "C004",
+        tenantId: "T1",
+        concept: "Mantenimiento",
+        date: "2026-06-01",
+        total: 31320,
+        paid: 0,
+        pending: 31320,
+        status: "overdue"
+      },
+      // T2 — Inquilino De Majo SA
+      {
+        id: "C005",
+        tenantId: "T2",
+        concept: "Renta",
+        date: "2026-06-28",
+        total: 208800,
+        paid: 0,
+        pending: 208800,
+        status: "due_soon"
+      }, {
+        id: "C006",
+        tenantId: "T2",
+        concept: "Mantenimiento",
+        date: "2026-06-05",
+        total: 31320,
+        paid: 31320,
+        pending: 0,
+        status: "paid"
+      },
+      // T3 — Aurora Events
+      {
+        id: "C007",
+        tenantId: "T3",
+        concept: "Renta",
+        date: "2026-06-15",
+        total: 55680,
+        paid: 0,
+        pending: 55680,
+        status: "projected"
+      }, {
+        id: "C008",
+        tenantId: "T3",
+        concept: "Mantenimiento",
+        date: "2026-06-15",
+        total: 8352,
+        paid: 0,
+        pending: 8352,
+        status: "projected"
+      }, {
+        id: "C009",
+        tenantId: "T3",
+        concept: "Estacionamiento",
+        date: "2026-06-15",
+        total: 4500,
+        paid: 0,
+        pending: 4500,
+        status: "projected"
+      },
+      // T4 — Mammut Pizza
+      {
+        id: "C010",
+        tenantId: "T4",
+        concept: "Renta",
+        date: "2026-06-05",
+        total: 50000,
+        paid: 25000,
+        pending: 25000,
+        status: "partial"
+      }, {
+        id: "C011",
+        tenantId: "T4",
+        concept: "Diferencial RV",
+        date: "2026-06-30",
+        total: 8000,
+        paid: 0,
+        pending: 8000,
+        status: "due_soon",
+        isExc: true
+      }, {
+        id: "C012",
+        tenantId: "T4",
+        concept: "Diferencial RV",
+        date: "2026-05-30",
+        total: 0,
+        paid: 0,
+        pending: 0,
+        status: "closed_no_overage",
+        isExc: true
+      }, {
+        id: "C013",
+        tenantId: "T4",
+        concept: "Mantenimiento",
+        date: "2026-06-05",
+        total: 7500,
+        paid: 7500,
+        pending: 0,
+        status: "paid"
+      }, {
+        id: "C014",
+        tenantId: "T4",
+        concept: "Publicidad",
+        date: "2026-06-05",
+        total: 2500,
+        paid: 2500,
+        pending: 0,
+        status: "paid"
+      },
+      // T5 — Bonacci
+      {
+        id: "C015",
+        tenantId: "T5",
+        concept: "Renta",
+        date: "2026-06-01",
+        total: 180000,
+        paid: 180000,
+        pending: 0,
+        status: "paid"
+      }, {
+        id: "C016",
+        tenantId: "T5",
+        concept: "Renta",
+        date: "2026-07-01",
+        total: 180000,
+        paid: 0,
+        pending: 180000,
+        status: "projected"
+      }, {
+        id: "C017",
+        tenantId: "T5",
+        concept: "Diferencial RV",
+        date: "2026-07-30",
+        total: 20000,
+        paid: 0,
+        pending: 20000,
+        status: "due_soon",
+        isExc: true
+      }, {
+        id: "C018",
+        tenantId: "T5",
+        concept: "Mantenimiento",
+        date: "2026-06-01",
+        total: 18000,
+        paid: 18000,
+        pending: 0,
+        status: "paid"
+      }];
+      const VENTAS = [
+      // T4 — Mammut
+      {
+        id: "V001",
+        tenantId: "T4",
+        refPeriod: "Abr 2026",
+        date: "2026-05-05",
+        salesAmt: 850000,
+        salesPct: 51000,
+        supera: true,
+        total: 1000,
+        status: "charge_generated"
+      }, {
+        id: "V002",
+        tenantId: "T4",
+        refPeriod: "May 2026",
+        date: "2026-06-05",
+        salesAmt: 780000,
+        salesPct: 46800,
+        supera: false,
+        total: 0,
+        status: "closed_no_overage"
+      }, {
+        id: "V003",
+        tenantId: "T4",
+        refPeriod: "Jun 2026",
+        date: "2026-07-05",
+        salesAmt: 920000,
+        salesPct: 55200,
+        supera: true,
+        total: 5200,
+        status: "pending_review"
+      }, {
+        id: "V004",
+        tenantId: "T4",
+        refPeriod: "Jul 2026",
+        date: "2026-08-05",
+        salesAmt: null,
+        salesPct: null,
+        supera: null,
+        total: null,
+        status: "pending_submission"
+      },
+      // T5 — Bonacci
+      {
+        id: "V005",
+        tenantId: "T5",
+        refPeriod: "Mar 2026",
+        date: "2026-04-05",
+        salesAmt: 4200000,
+        salesPct: 210000,
+        supera: true,
+        total: 30000,
+        status: "charge_generated"
+      }, {
+        id: "V006",
+        tenantId: "T5",
+        refPeriod: "Abr 2026",
+        date: "2026-05-05",
+        salesAmt: 3500000,
+        salesPct: 175000,
+        supera: false,
+        total: 0,
+        status: "closed_no_overage"
+      }, {
+        id: "V007",
+        tenantId: "T5",
+        refPeriod: "May 2026",
+        date: "2026-06-05",
+        salesAmt: 3800000,
+        salesPct: 190000,
+        supera: true,
+        total: 10000,
+        status: "charge_generated"
+      }, {
+        id: "V008",
+        tenantId: "T5",
+        refPeriod: "Jun 2026",
+        date: "2026-07-05",
+        salesAmt: 4000000,
+        salesPct: 200000,
+        supera: true,
+        total: 20000,
+        status: "pending_review"
+      }, {
+        id: "V009",
+        tenantId: "T5",
+        refPeriod: "Jul 2026",
+        date: "2026-08-05",
+        salesAmt: null,
+        salesPct: null,
+        supera: null,
+        total: null,
+        status: "pending_submission"
+      },
+      // T3 — Aurora (sin RV pero podría tener reportes especiales)
+      {
+        id: "V010",
+        tenantId: "T3",
+        refPeriod: "Jun 2026 [audit]",
+        date: "2026-07-15",
+        salesAmt: 65000,
+        salesPct: null,
+        supera: null,
+        total: null,
+        status: "pending_review"
+      }];
+      
+      // ════════════════════════════════════════════════════════════
+      // COMPONENTE PRINCIPAL
+      // ════════════════════════════════════════════════════════════
+      
+      function CobranzaDashboard() {
+        const [mainTab, setMainTab] = useState("cargos"); // "cargos" | "ventas"
+      
+        return /*#__PURE__*/React.createElement("div", {
+          style: {
+            minHeight: "100vh",
+            background: "#FAFAFB",
+            color: "#1A1A1A",
+            fontFamily: "system-ui, -apple-system, 'Segoe UI', sans-serif",
+            padding: "24px 32px"
+          }
+        }, /*#__PURE__*/React.createElement("div", {
+          style: {
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            marginBottom: 20
+          }
+        }, /*#__PURE__*/React.createElement("h1", {
+          style: {
+            fontSize: 24,
+            fontWeight: 700,
+            margin: 0,
+            color: "#111"
+          }
+        }, "Cobranza"), /*#__PURE__*/React.createElement("div", {
+          style: {
+            display: "flex",
+            gap: 8,
+            alignItems: "center"
+          }
+        }, /*#__PURE__*/React.createElement("button", {
+          style: subtleBtn
+        }, "Ordenar por \u25BE"), /*#__PURE__*/React.createElement("button", {
+          style: iconBtn
+        }, "\u21BB"), /*#__PURE__*/React.createElement("button", {
+          style: primaryBtn
+        }, "+ Crear nuevo cargo"))), /*#__PURE__*/React.createElement("div", {
+          style: {
+            display: "flex",
+            gap: 0,
+            borderBottom: "1px solid #E5E5E7",
+            marginBottom: 18
+          }
+        }, [{
+          k: "cargos",
+          l: "📄 Cargos",
+          n: CARGOS.length
+        }, {
+          k: "ventas",
+          l: "💰 Ventas reportadas",
+          n: VENTAS.length
+        }].map(t => /*#__PURE__*/React.createElement("button", {
+          key: t.k,
+          onClick: () => setMainTab(t.k),
+          style: {
+            padding: "11px 18px",
+            border: "none",
+            background: "transparent",
+            fontSize: 13.5,
+            fontWeight: mainTab === t.k ? 600 : 500,
+            color: mainTab === t.k ? "#111" : "#6B6B6F",
+            borderBottom: mainTab === t.k ? "2px solid #111" : "2px solid transparent",
+            marginBottom: -1,
+            cursor: "pointer",
+            fontFamily: "inherit",
+            display: "flex",
+            alignItems: "center",
+            gap: 8
+          }
+        }, t.l, /*#__PURE__*/React.createElement("span", {
+          style: {
+            background: mainTab === t.k ? "#F4F4F5" : "#FAFAFB",
+            color: "#6B6B6F",
+            padding: "1px 8px",
+            borderRadius: 8,
+            fontSize: 11,
+            fontWeight: 600
+          }
+        }, t.n)))), mainTab === "cargos" && /*#__PURE__*/React.createElement(CargosView, null), mainTab === "ventas" && /*#__PURE__*/React.createElement(VentasView, null));
+      }
+      
+      // ════════════════════════════════════════════════════════════
+      // VISTA: CARGOS GLOBALES
+      // ════════════════════════════════════════════════════════════
+      function CargosView() {
+        const [filters, setFilters] = useState({
+          year: "2026",
+          month: "todos",
+          quickFilter: "todos",
+          // todos | mora | hoy
+          estatus: "todos",
+          categoria: "todas",
+          inquilino: "todos",
+          espacio: "todos",
+          search: ""
+        });
+        const [openMenuId, setOpenMenuId] = useState(null);
+      
+        // Aplicamos TODOS los filtros excepto estatus para calcular conteos por chip
+        const preStatusFiltered = useMemo(() => {
+          return CARGOS.filter(c => {
+            const t = TENANTS.find(t => t.id === c.tenantId);
+            if (filters.month !== "todos" && c.date.split("-")[1] !== filters.month) return false;
+            if (filters.year !== "todos" && !c.date.startsWith(filters.year)) return false;
+            if (filters.quickFilter === "hoy") {
+              const today = "2026-06-03";
+              if (c.date !== today) return false;
+            }
+            if (filters.categoria !== "todas" && c.concept !== filters.categoria) return false;
+            if (filters.inquilino !== "todos" && c.tenantId !== filters.inquilino) return false;
+            if (filters.espacio !== "todos" && SPACES[c.tenantId] !== filters.espacio) return false;
+            if (filters.search) {
+              const q = filters.search.toLowerCase();
+              const matchesTenant = t?.name.toLowerCase().includes(q) || t?.rfc.toLowerCase().includes(q);
+              const matchesSpace = SPACES[c.tenantId].toLowerCase().includes(q);
+              const matchesConcept = c.concept.toLowerCase().includes(q);
+              if (!matchesTenant && !matchesSpace && !matchesConcept) return false;
+            }
+            return true;
+          });
+        }, [filters.month, filters.year, filters.quickFilter, filters.categoria, filters.inquilino, filters.espacio, filters.search]);
+      
+        // Aplicamos también el filtro de estatus para la tabla final
+        const filtered = useMemo(() => {
+          let result = preStatusFiltered;
+          // Quick filter de morosidad
+          if (filters.quickFilter === "mora") result = result.filter(c => c.status === "overdue");
+          if (filters.estatus !== "todos") result = result.filter(c => c.status === filters.estatus);
+          return result.sort((a, b) => a.date.localeCompare(b.date));
+        }, [preStatusFiltered, filters.estatus, filters.quickFilter]);
+      
+        // Conteos por estatus para los chips (basados en preStatusFiltered)
+        const statusCounts = useMemo(() => {
+          const counts = {
+            todos: preStatusFiltered.length
+          };
+          Object.keys(STATUS).forEach(s => {
+            counts[s] = preStatusFiltered.filter(c => c.status === s).length;
+          });
+          return counts;
+        }, [preStatusFiltered]);
+        const kpis = useMemo(() => ({
+          enVista: filtered.length,
+          pendiente: filtered.reduce((s, c) => s + (c.pending || 0), 0),
+          pagado: filtered.reduce((s, c) => s + (c.paid || 0), 0),
+          mora: filtered.filter(c => c.status === "overdue").reduce((s, c) => s + (c.pending || 0), 0)
+        }), [filtered]);
+      
+        // Opciones disponibles dinámicas
+        const conceptos = useMemo(() => Array.from(new Set(CARGOS.map(c => c.concept))), []);
+        const espacios = useMemo(() => Array.from(new Set(Object.values(SPACES))), []);
+        const conciliateRow = id => {
+          setOpenMenuId(null); /* TODO mutate */
+        };
+        const partialPay = id => {
+          setOpenMenuId(null); /* TODO mutate */
+        };
+        return /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
+          style: {
+            display: "grid",
+            gridTemplateColumns: "repeat(4, 1fr)",
+            gap: 14,
+            marginBottom: 16
+          }
+        }, /*#__PURE__*/React.createElement(KpiCard, {
+          label: "Cargos en vista",
+          value: kpis.enVista,
+          sub: "Filas que coinciden con los filtros actuales"
+        }), /*#__PURE__*/React.createElement(KpiCard, {
+          label: "Pendiente (suma)",
+          value: `$${kpis.pendiente.toLocaleString("es-MX")}`,
+          sub: "Seg\xFAn los filtros activos",
+          icon: "\u2261",
+          color: "#2563EB"
+        }), /*#__PURE__*/React.createElement(KpiCard, {
+          label: "Pagado (suma)",
+          value: `$${kpis.pagado.toLocaleString("es-MX")}`,
+          sub: "Seg\xFAn los filtros activos",
+          icon: "\u2713",
+          color: "#1F8546"
+        }), /*#__PURE__*/React.createElement(KpiCard, {
+          label: "En mora (suma)",
+          value: `$${kpis.mora.toLocaleString("es-MX")}`,
+          sub: "Saldo pendiente con estatus En mora",
+          icon: "\u23F1",
+          color: "#C62828"
+        })), /*#__PURE__*/React.createElement(FiltersBar, {
+          filters: filters,
+          setFilters: setFilters,
+          conceptos: conceptos,
+          tenants: TENANTS,
+          espacios: espacios,
+          estados: STATUS,
+          view: "cargos"
+        }), /*#__PURE__*/React.createElement(StatusChips, {
+          statuses: STATUS,
+          counts: statusCounts,
+          activeKey: filters.estatus,
+          onSelect: k => setFilters({
+            ...filters,
+            estatus: k
+          })
+        }), /*#__PURE__*/React.createElement("div", {
+          style: {
+            background: "white",
+            border: "1px solid #ECECEE",
+            borderRadius: 10,
+            overflow: "hidden",
+            marginTop: 0
+          }
+        }, /*#__PURE__*/React.createElement("div", {
+          style: {
+            display: "grid",
+            gridTemplateColumns: "30px 1.4fr 1.3fr .9fr 1fr 1fr .8fr 1fr 1.1fr 1fr 50px",
+            padding: "11px 18px",
+            background: "#FAFAFB",
+            borderBottom: "1px solid #ECECEE",
+            fontSize: 10,
+            fontWeight: 600,
+            color: "#9CA3AF",
+            textTransform: "uppercase",
+            letterSpacing: ".3px"
+          }
+        }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("input", {
+          type: "checkbox",
+          style: {
+            accentColor: "#2563EB"
+          }
+        })), /*#__PURE__*/React.createElement("div", null, "Inquilino / RFC"), /*#__PURE__*/React.createElement("div", null, "Espacio"), /*#__PURE__*/React.createElement("div", null, "Categor\xEDa"), /*#__PURE__*/React.createElement("div", null, "Fecha venc."), /*#__PURE__*/React.createElement("div", null, "Total"), /*#__PURE__*/React.createElement("div", null, "Pagado"), /*#__PURE__*/React.createElement("div", null, "Pendiente"), /*#__PURE__*/React.createElement("div", null, "Cobranza"), /*#__PURE__*/React.createElement("div", null, "Estatus"), /*#__PURE__*/React.createElement("div", null, "Acciones")), filtered.map((c, i) => /*#__PURE__*/React.createElement(CargoRowGlobal, {
+          key: c.id,
+          c: c,
+          isLast: i === filtered.length - 1,
+          tenant: TENANTS.find(t => t.id === c.tenantId),
+          space: SPACES[c.tenantId],
+          menuOpen: openMenuId === c.id,
+          setMenuOpen: v => setOpenMenuId(v ? c.id : null),
+          onConciliate: () => conciliateRow(c.id),
+          onPartialPay: () => partialPay(c.id)
+        })), filtered.length === 0 && /*#__PURE__*/React.createElement("div", {
+          style: {
+            padding: "40px 18px",
+            textAlign: "center",
+            color: "#9CA3AF",
+            fontSize: 13
+          }
+        }, "Sin cargos para estos filtros.")));
+      }
+      function CargoRowGlobal({
+        c,
+        isLast,
+        tenant,
+        space,
+        menuOpen,
+        setMenuOpen,
+        onConciliate,
+        onPartialPay
+      }) {
+        const s = STATUS[c.status] || STATUS.projected;
+        const isPaid = c.status === "paid";
+        const isClosed = c.status === "closed_no_overage";
+        const pctCobrado = c.total > 0 ? Math.round(c.paid / c.total * 100) : 0;
+        return /*#__PURE__*/React.createElement("div", {
+          style: {
+            display: "grid",
+            gridTemplateColumns: "30px 1.4fr 1.3fr .9fr 1fr 1fr .8fr 1fr 1.1fr 1fr 50px",
+            padding: "12px 18px",
+            alignItems: "center",
+            borderBottom: isLast ? "none" : "1px solid #F4F4F5",
+            fontSize: 12.5,
+            color: "#111"
+          }
+        }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("input", {
+          type: "checkbox",
+          style: {
+            accentColor: "#2563EB"
+          }
+        })), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+          style: {
+            display: "flex",
+            alignItems: "center",
+            gap: 8
+          }
+        }, /*#__PURE__*/React.createElement("span", {
+          style: {
+            display: "inline-flex",
+            alignItems: "center",
+            justifyContent: "center",
+            width: 22,
+            height: 22,
+            borderRadius: "50%",
+            background: tenantColor(tenant.id),
+            color: "white",
+            fontSize: 10,
+            fontWeight: 700
+          }
+        }, tenant.short), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+          style: {
+            fontSize: 12.5,
+            fontWeight: 500,
+            color: "#111",
+            lineHeight: 1.2
+          }
+        }, tenant.name), /*#__PURE__*/React.createElement("div", {
+          style: {
+            fontSize: 10,
+            color: "#9CA3AF",
+            fontFamily: "ui-monospace, monospace"
+          }
+        }, tenant.rfc)))), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("span", {
+          style: {
+            display: "inline-block",
+            padding: "3px 9px",
+            background: "#EFF6FF",
+            color: "#1E40AF",
+            fontSize: 11,
+            fontWeight: 500,
+            borderRadius: 12
+          }
+        }, space)), /*#__PURE__*/React.createElement("div", {
+          style: {
+            color: "#1A1A1A"
+          }
+        }, c.concept, c.isExc && /*#__PURE__*/React.createElement("span", {
+          style: {
+            marginLeft: 6,
+            fontSize: 9,
+            fontWeight: 600,
+            padding: "1px 5px",
+            background: "#EEF2FF",
+            color: "#4338CA",
+            borderRadius: 3,
+            letterSpacing: ".3px",
+            textTransform: "uppercase"
+          }
+        }, "Auto")), /*#__PURE__*/React.createElement("div", {
+          style: {
+            color: "#6B6B6F"
+          }
+        }, c.date), /*#__PURE__*/React.createElement("div", {
+          style: {
+            color: isClosed ? "#9CA3AF" : "#111",
+            fontWeight: 500
+          }
+        }, c.total == null ? "—" : `$${c.total.toLocaleString("es-MX")}`), /*#__PURE__*/React.createElement("div", {
+          style: {
+            color: c.paid > 0 ? "#1F8546" : "#C7C7CB"
+          }
+        }, c.paid > 0 ? `$${c.paid.toLocaleString("es-MX")}` : "0"), /*#__PURE__*/React.createElement("div", {
+          style: {
+            color: c.pending == null ? "#C7C7CB" : c.pending > 0 ? "#1A1A1A" : "#9CA3AF"
+          }
+        }, c.pending == null ? "—" : `$${c.pending.toLocaleString("es-MX")}`), /*#__PURE__*/React.createElement("div", null, c.total > 0 ? /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+          style: {
+            height: 6,
+            background: "#F4F4F5",
+            borderRadius: 3,
+            overflow: "hidden"
+          }
+        }, /*#__PURE__*/React.createElement("div", {
+          style: {
+            height: "100%",
+            width: `${pctCobrado}%`,
+            background: pctCobrado === 100 ? "#1F8546" : pctCobrado > 0 ? "#FFA726" : "#E5E5E7",
+            transition: "width .2s"
+          }
+        })), /*#__PURE__*/React.createElement("div", {
+          style: {
+            fontSize: 10,
+            color: "#9CA3AF",
+            marginTop: 3
+          }
+        }, pctCobrado, "%")) : /*#__PURE__*/React.createElement("span", {
+          style: {
+            fontSize: 11,
+            color: "#C7C7CB"
+          }
+        }, "\u2014")), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("span", {
+          style: {
+            display: "inline-block",
+            padding: "3px 10px",
+            borderRadius: 4,
+            background: s.bg,
+            color: s.fg,
+            fontSize: 11,
+            fontWeight: 500,
+            whiteSpace: "nowrap"
+          }
+        }, s.label)), /*#__PURE__*/React.createElement("div", {
+          style: {
+            position: "relative",
+            textAlign: "right"
+          }
+        }, !isPaid && !isClosed && /*#__PURE__*/React.createElement("button", {
+          onClick: () => setMenuOpen(!menuOpen),
+          style: {
+            width: 28,
+            height: 28,
+            background: "white",
+            border: "1px solid #E5E5E7",
+            borderRadius: 6,
+            fontSize: 13,
+            color: "#6B6B6F",
+            cursor: "pointer",
+            fontFamily: "inherit"
+          }
+        }, "\u22EF"), menuOpen && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
+          onClick: () => setMenuOpen(false),
+          style: {
+            position: "fixed",
+            inset: 0,
+            zIndex: 10
+          }
+        }), /*#__PURE__*/React.createElement("div", {
+          style: {
+            position: "absolute",
+            right: 0,
+            top: 32,
+            zIndex: 11,
+            background: "white",
+            border: "1px solid #E5E5E7",
+            borderRadius: 8,
+            boxShadow: "0 4px 16px rgba(0,0,0,.08)",
+            minWidth: 200,
+            overflow: "hidden"
+          }
+        }, /*#__PURE__*/React.createElement("button", {
+          onClick: onConciliate,
+          style: menuItemStyle
+        }, "\u2713 Conciliar (pago total)"), /*#__PURE__*/React.createElement("button", {
+          onClick: onPartialPay,
+          style: menuItemStyle
+        }, "\u25D0 Registrar pago parcial"), /*#__PURE__*/React.createElement("div", {
+          style: {
+            height: 1,
+            background: "#F4F4F5"
+          }
+        }), /*#__PURE__*/React.createElement("button", {
+          style: menuItemStyle
+        }, "\uD83D\uDCCE Adjuntar comprobante"), /*#__PURE__*/React.createElement("button", {
+          style: menuItemStyle
+        }, "\uD83D\uDD17 Ir al contrato"), /*#__PURE__*/React.createElement("button", {
+          style: menuItemStyle
+        }, "\uD83D\uDC41 Ver detalle del cargo")))));
+      }
+      
+      // ════════════════════════════════════════════════════════════
+      // VISTA: VENTAS REPORTADAS GLOBALES
+      // ════════════════════════════════════════════════════════════
+      function VentasView() {
+        const [filters, setFilters] = useState({
+          year: "2026",
+          month: "todos",
+          estatus: "todos",
+          // pendiente | reportado | aprobado | rechazado
+          inquilino: "todos",
+          tipoReporte: "todos",
+          // regular | on_demand | audit
+          search: ""
+        });
+      
+        // Aplicamos todos los filtros excepto estatus para conteos por chip
+        const preStatusFiltered = useMemo(() => {
+          return VENTAS.filter(v => {
+            if (filters.month !== "todos" && v.date.split("-")[1] !== filters.month) return false;
+            if (filters.year !== "todos" && !v.date.startsWith(filters.year)) return false;
+            if (filters.inquilino !== "todos" && v.tenantId !== filters.inquilino) return false;
+            if (filters.tipoReporte === "audit" && !v.refPeriod.includes("audit")) return false;
+            if (filters.tipoReporte === "regular" && v.refPeriod.includes("audit")) return false;
+            if (filters.search) {
+              const t = TENANTS.find(t => t.id === v.tenantId);
+              const q = filters.search.toLowerCase();
+              if (!t?.name.toLowerCase().includes(q) && !t?.rfc.toLowerCase().includes(q) && !v.refPeriod.toLowerCase().includes(q)) return false;
+            }
+            return true;
+          });
+        }, [filters.month, filters.year, filters.inquilino, filters.tipoReporte, filters.search]);
+        const filtered = useMemo(() => {
+          if (filters.estatus === "todos") return preStatusFiltered.sort((a, b) => a.date.localeCompare(b.date));
+          return preStatusFiltered.filter(v => mapToVentaStatus(v) === filters.estatus).sort((a, b) => a.date.localeCompare(b.date));
+        }, [preStatusFiltered, filters.estatus]);
+        const statusCounts = useMemo(() => {
+          const counts = {
+            todos: preStatusFiltered.length
+          };
+          Object.keys(VENTAS_STATUS).forEach(s => {
+            counts[s] = preStatusFiltered.filter(v => mapToVentaStatus(v) === s).length;
+          });
+          return counts;
+        }, [preStatusFiltered]);
+        const stats = useMemo(() => {
+          const reportados = filtered.filter(v => v.salesAmt != null);
+          const ventasTotal = reportados.reduce((s, v) => s + (v.salesAmt || 0), 0);
+          const dif = filtered.filter(v => v.supera).reduce((s, v) => s + (v.total || 0), 0);
+          return {
+            enVista: filtered.length,
+            ventasTotal,
+            diferencialesGenerados: dif,
+            pendientes: filtered.filter(v => mapToVentaStatus(v) === "pendiente").length,
+            porAprobar: filtered.filter(v => mapToVentaStatus(v) === "reportado").length
+          };
+        }, [filtered]);
+        return /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
+          style: {
+            display: "grid",
+            gridTemplateColumns: "repeat(4, 1fr)",
+            gap: 14,
+            marginBottom: 16
+          }
+        }, /*#__PURE__*/React.createElement(KpiCard, {
+          label: "Reportes en vista",
+          value: stats.enVista,
+          sub: "Filas que coinciden con los filtros"
+        }), /*#__PURE__*/React.createElement(KpiCard, {
+          label: "Ventas reportadas (suma)",
+          value: `$${(stats.ventasTotal / 1e6).toFixed(2)}M`,
+          sub: "Periodo en filtros activos",
+          color: "#111"
+        }), /*#__PURE__*/React.createElement(KpiCard, {
+          label: "Diferenciales generados",
+          value: `$${stats.diferencialesGenerados.toLocaleString("es-MX")}`,
+          sub: "S\xF3lo periodos que superaron RMG",
+          icon: "\u2197",
+          color: "#4338CA"
+        }), /*#__PURE__*/React.createElement(KpiCard, {
+          label: "Por aprobar",
+          value: stats.porAprobar,
+          sub: "Reportes esperando tu revisi\xF3n",
+          icon: "\u23F1",
+          color: "#92400E"
+        })), /*#__PURE__*/React.createElement(FiltersBar, {
+          filters: filters,
+          setFilters: setFilters,
+          tenants: TENANTS,
+          estados: VENTAS_STATUS,
+          view: "ventas"
+        }), /*#__PURE__*/React.createElement(StatusChips, {
+          statuses: VENTAS_STATUS,
+          counts: statusCounts,
+          activeKey: filters.estatus,
+          onSelect: k => setFilters({
+            ...filters,
+            estatus: k
+          })
+        }), /*#__PURE__*/React.createElement("div", {
+          style: {
+            background: "white",
+            border: "1px solid #ECECEE",
+            borderRadius: 10,
+            overflow: "hidden",
+            marginTop: 0
+          }
+        }, /*#__PURE__*/React.createElement("div", {
+          style: {
+            display: "grid",
+            gridTemplateColumns: "30px 1.4fr 1.2fr .9fr 1fr 1.1fr 1fr 1fr 1fr 1fr 50px",
+            padding: "11px 18px",
+            background: "#FAFAFB",
+            borderBottom: "1px solid #ECECEE",
+            fontSize: 10,
+            fontWeight: 600,
+            color: "#9CA3AF",
+            textTransform: "uppercase",
+            letterSpacing: ".3px"
+          }
+        }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("input", {
+          type: "checkbox",
+          style: {
+            accentColor: "#2563EB"
+          }
+        })), /*#__PURE__*/React.createElement("div", null, "Inquilino / RFC"), /*#__PURE__*/React.createElement("div", null, "Espacio"), /*#__PURE__*/React.createElement("div", null, "Periodo"), /*#__PURE__*/React.createElement("div", null, "Fecha l\xEDmite"), /*#__PURE__*/React.createElement("div", null, "Ventas netas"), /*#__PURE__*/React.createElement("div", null, "% aplicado"), /*#__PURE__*/React.createElement("div", null, "RMG vigente"), /*#__PURE__*/React.createElement("div", null, "Diferencial"), /*#__PURE__*/React.createElement("div", null, "Estado"), /*#__PURE__*/React.createElement("div", null)), filtered.map((v, i) => /*#__PURE__*/React.createElement(VentaRowGlobal, {
+          key: v.id,
+          v: v,
+          isLast: i === filtered.length - 1,
+          tenant: TENANTS.find(t => t.id === v.tenantId),
+          space: SPACES[v.tenantId]
+        })), filtered.length === 0 && /*#__PURE__*/React.createElement("div", {
+          style: {
+            padding: "40px 18px",
+            textAlign: "center",
+            color: "#9CA3AF",
+            fontSize: 13
+          }
+        }, "Sin reportes para estos filtros.")));
+      }
+      function VentaRowGlobal({
+        v,
+        isLast,
+        tenant,
+        space
+      }) {
+        const ventaStatus = mapToVentaStatus(v);
+        const vs = VENTAS_STATUS[ventaStatus];
+        const isAudit = v.refPeriod.includes("audit");
+      
+        // Estos valores en el dashboard global son por contrato — mock referencial
+        const RMG_PROXY = {
+          T4: 50000,
+          T5: 180000,
+          T3: 0
+        };
+        const PCT_PROXY = {
+          T4: 6,
+          T5: 5,
+          T3: 0
+        };
+        const rmg = RMG_PROXY[tenant.id] ?? null;
+        const pct = PCT_PROXY[tenant.id] ?? null;
+        return /*#__PURE__*/React.createElement("div", {
+          style: {
+            display: "grid",
+            gridTemplateColumns: "30px 1.4fr 1.2fr .9fr 1fr 1.1fr 1fr 1fr 1fr 1fr 50px",
+            padding: "11px 18px",
+            alignItems: "center",
+            borderBottom: isLast ? "none" : "1px solid #F4F4F5",
+            fontSize: 12.5,
+            background: ventaStatus === "reportado" ? "rgba(254, 243, 199, .25)" : ventaStatus === "pendiente" ? "rgba(255, 244, 229, .2)" : "white"
+          }
+        }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("input", {
+          type: "checkbox",
+          style: {
+            accentColor: "#2563EB"
+          }
+        })), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+          style: {
+            display: "flex",
+            alignItems: "center",
+            gap: 8
+          }
+        }, /*#__PURE__*/React.createElement("span", {
+          style: {
+            display: "inline-flex",
+            alignItems: "center",
+            justifyContent: "center",
+            width: 22,
+            height: 22,
+            borderRadius: "50%",
+            background: tenantColor(tenant.id),
+            color: "white",
+            fontSize: 10,
+            fontWeight: 700
+          }
+        }, tenant.short), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+          style: {
+            fontSize: 12.5,
+            fontWeight: 500,
+            color: "#111",
+            lineHeight: 1.2
+          }
+        }, tenant.name), /*#__PURE__*/React.createElement("div", {
+          style: {
+            fontSize: 10,
+            color: "#9CA3AF",
+            fontFamily: "ui-monospace, monospace"
+          }
+        }, tenant.rfc)))), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("span", {
+          style: {
+            display: "inline-block",
+            padding: "3px 9px",
+            background: "#EFF6FF",
+            color: "#1E40AF",
+            fontSize: 11,
+            fontWeight: 500,
+            borderRadius: 12
+          }
+        }, space)), /*#__PURE__*/React.createElement("div", {
+          style: {
+            color: "#111",
+            fontWeight: 500
+          }
+        }, v.refPeriod.replace(" [audit]", ""), isAudit && /*#__PURE__*/React.createElement("span", {
+          style: {
+            marginLeft: 6,
+            fontSize: 9,
+            fontWeight: 600,
+            padding: "1px 5px",
+            background: "#FFF4E5",
+            color: "#B26500",
+            borderRadius: 3,
+            letterSpacing: ".3px",
+            textTransform: "uppercase"
+          }
+        }, "Auditor\xEDa")), /*#__PURE__*/React.createElement("div", {
+          style: {
+            color: "#6B6B6F"
+          }
+        }, v.date), /*#__PURE__*/React.createElement("div", {
+          style: {
+            color: v.salesAmt ? "#111" : "#C7C7CB",
+            fontWeight: v.salesAmt ? 600 : 400
+          }
+        }, v.salesAmt ? `$${v.salesAmt.toLocaleString("es-MX")}` : "—"), /*#__PURE__*/React.createElement("div", {
+          style: {
+            color: v.salesPct ? "#6B6B6F" : "#C7C7CB",
+            fontFamily: "ui-monospace, monospace",
+            fontSize: 11
+          }
+        }, v.salesPct && pct ? `${pct}% = $${v.salesPct.toLocaleString("es-MX")}` : "—"), /*#__PURE__*/React.createElement("div", {
+          style: {
+            color: "#6B6B6F",
+            fontSize: 11,
+            fontFamily: "ui-monospace, monospace"
+          }
+        }, rmg != null ? `$${rmg.toLocaleString("es-MX")}` : "—"), /*#__PURE__*/React.createElement("div", null, v.salesAmt == null ? /*#__PURE__*/React.createElement("span", {
+          style: {
+            color: "#C7C7CB"
+          }
+        }, "\u2014") : v.supera ? /*#__PURE__*/React.createElement("span", {
+          style: {
+            color: "#4338CA",
+            fontWeight: 700
+          }
+        }, "$", v.total.toLocaleString("es-MX"), " \u2197") : /*#__PURE__*/React.createElement("span", {
+          style: {
+            color: "#9CA3AF"
+          }
+        }, "$0")), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("span", {
+          style: {
+            display: "inline-block",
+            padding: "3px 10px",
+            borderRadius: 4,
+            background: vs.bg,
+            color: vs.fg,
+            fontSize: 11,
+            fontWeight: 500,
+            whiteSpace: "nowrap"
+          }
+        }, vs.label)), /*#__PURE__*/React.createElement("div", {
+          style: {
+            textAlign: "right",
+            color: "#9CA3AF",
+            fontSize: 14
+          }
+        }, "\u203A"));
+      }
+      
+      // ════════════════════════════════════════════════════════════
+      // STATUS CHIPS — filtro rápido por estatus con conteos
+      // ════════════════════════════════════════════════════════════
+      function StatusChips({
+        statuses,
+        counts,
+        activeKey,
+        onSelect
+      }) {
+        return /*#__PURE__*/React.createElement("div", {
+          style: {
+            display: "flex",
+            gap: 8,
+            flexWrap: "wrap",
+            padding: "12px 0",
+            marginTop: 6
+          }
+        }, /*#__PURE__*/React.createElement(Chip, {
+          label: "Todos",
+          count: counts.todos || 0,
+          active: activeKey === "todos",
+          onClick: () => onSelect("todos")
+        }), Object.entries(statuses).map(([key, s]) => /*#__PURE__*/React.createElement(Chip, {
+          key: key,
+          label: s.label,
+          count: counts[key] || 0,
+          color: s.fg,
+          bg: s.bg,
+          active: activeKey === key,
+          onClick: () => onSelect(activeKey === key ? "todos" : key)
+        })));
+      }
+      function Chip({
+        label,
+        count,
+        color,
+        bg,
+        active,
+        onClick
+      }) {
+        const baseColor = color || "#6B6B6F";
+        const baseBg = bg || "#F4F4F5";
+        return /*#__PURE__*/React.createElement("button", {
+          onClick: onClick,
+          style: {
+            display: "inline-flex",
+            alignItems: "center",
+            gap: 6,
+            padding: "6px 12px",
+            borderRadius: 8,
+            background: active ? baseColor : "white",
+            color: active ? "white" : baseColor,
+            border: `1px solid ${active ? baseColor : "#E5E5E7"}`,
+            fontSize: 12,
+            fontWeight: 500,
+            cursor: "pointer",
+            fontFamily: "inherit",
+            transition: "all .12s",
+            whiteSpace: "nowrap"
+          }
+        }, label, /*#__PURE__*/React.createElement("span", {
+          style: {
+            background: active ? "rgba(255,255,255,.25)" : baseBg,
+            color: active ? "white" : baseColor,
+            padding: "1px 7px",
+            borderRadius: 10,
+            fontSize: 10.5,
+            fontWeight: 700,
+            lineHeight: 1.5,
+            minWidth: 14,
+            textAlign: "center"
+          }
+        }, count));
+      }
+      
+      // ════════════════════════════════════════════════════════════
+      // BARRA DE FILTROS AVANZADOS
+      // ════════════════════════════════════════════════════════════
+      function FiltersBar({
+        filters,
+        setFilters,
+        conceptos,
+        tenants,
+        espacios,
+        estados,
+        view
+      }) {
+        const [expanded, setExpanded] = useState(false);
+        const set = (k, v) => setFilters({
+          ...filters,
+          [k]: v
+        });
+        const months = [{
+          v: "todos",
+          l: "Todos"
+        }, {
+          v: "01",
+          l: "Enero"
+        }, {
+          v: "02",
+          l: "Febrero"
+        }, {
+          v: "03",
+          l: "Marzo"
+        }, {
+          v: "04",
+          l: "Abril"
+        }, {
+          v: "05",
+          l: "Mayo"
+        }, {
+          v: "06",
+          l: "Junio"
+        }, {
+          v: "07",
+          l: "Julio"
+        }, {
+          v: "08",
+          l: "Agosto"
+        }, {
+          v: "09",
+          l: "Septiembre"
+        }, {
+          v: "10",
+          l: "Octubre"
+        }, {
+          v: "11",
+          l: "Noviembre"
+        }, {
+          v: "12",
+          l: "Diciembre"
+        }];
+      
+        // Contador de filtros activos no-default
+        const activeCount = Object.entries(filters).filter(([k, v]) => {
+          if (k === "year") return false;
+          if (k === "search") return v !== "";
+          return v !== "todos" && v !== "todas";
+        }).length;
+        return /*#__PURE__*/React.createElement("div", {
+          style: {
+            background: "white",
+            border: "1px solid #ECECEE",
+            borderRadius: 10,
+            padding: "12px 16px"
+          }
+        }, /*#__PURE__*/React.createElement("div", {
+          style: {
+            display: "flex",
+            gap: 8,
+            alignItems: "center",
+            flexWrap: "wrap"
+          }
+        }, /*#__PURE__*/React.createElement(Select, {
+          label: "\uD83D\uDCC5",
+          value: filters.year,
+          onChange: v => set("year", v),
+          options: [{
+            v: "todos",
+            l: "Todos"
+          }, {
+            v: "2026",
+            l: "2026"
+          }, {
+            v: "2025",
+            l: "2025"
+          }, {
+            v: "2024",
+            l: "2024"
+          }]
+        }), /*#__PURE__*/React.createElement(Select, {
+          value: filters.month,
+          onChange: v => set("month", v),
+          options: months
+        }), view === "cargos" && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("button", {
+          onClick: () => set("quickFilter", filters.quickFilter === "hoy" ? "todos" : "hoy"),
+          style: {
+            padding: "7px 14px",
+            border: "none",
+            borderRadius: 6,
+            background: filters.quickFilter === "hoy" ? "#1F8546" : "#EAF7EE",
+            color: filters.quickFilter === "hoy" ? "white" : "#1F8546",
+            fontSize: 12,
+            fontWeight: 600,
+            cursor: "pointer",
+            fontFamily: "inherit"
+          }
+        }, "\u23F1 Hoy"), /*#__PURE__*/React.createElement("button", {
+          onClick: () => set("quickFilter", filters.quickFilter === "mora" ? "todos" : "mora"),
+          style: {
+            padding: "7px 14px",
+            border: "1px solid #FBEAE9",
+            borderRadius: 6,
+            background: filters.quickFilter === "mora" ? "#C62828" : "white",
+            color: filters.quickFilter === "mora" ? "white" : "#C62828",
+            fontSize: 12,
+            fontWeight: 600,
+            cursor: "pointer",
+            fontFamily: "inherit"
+          }
+        }, "\u26A0 Morosidad")), /*#__PURE__*/React.createElement("div", {
+          style: {
+            flex: 1
+          }
+        }), /*#__PURE__*/React.createElement("div", {
+          style: {
+            position: "relative"
+          }
+        }, /*#__PURE__*/React.createElement("span", {
+          style: {
+            position: "absolute",
+            left: 10,
+            top: "50%",
+            transform: "translateY(-50%)",
+            fontSize: 12,
+            color: "#9CA3AF"
+          }
+        }, "\uD83D\uDD0D"), /*#__PURE__*/React.createElement("input", {
+          type: "text",
+          value: filters.search,
+          onChange: e => set("search", e.target.value),
+          placeholder: "Buscar inquilino, RFC, concepto...",
+          style: {
+            padding: "7px 11px 7px 30px",
+            border: "1px solid #E5E5E7",
+            borderRadius: 6,
+            fontSize: 12,
+            color: "#111",
+            fontFamily: "inherit",
+            outline: "none",
+            minWidth: 240,
+            background: "white"
+          }
+        })), /*#__PURE__*/React.createElement("button", {
+          onClick: () => setExpanded(!expanded),
+          style: {
+            padding: "7px 14px",
+            border: "1px solid #E5E5E7",
+            borderRadius: 6,
+            background: expanded ? "#F4F4F5" : "white",
+            color: "#111",
+            fontSize: 12,
+            fontWeight: 600,
+            cursor: "pointer",
+            fontFamily: "inherit",
+            display: "flex",
+            alignItems: "center",
+            gap: 6
+          }
+        }, "\u2699 Filtros avanzados ", activeCount > 0 && /*#__PURE__*/React.createElement("span", {
+          style: {
+            background: "#4338CA",
+            color: "white",
+            padding: "1px 6px",
+            borderRadius: 8,
+            fontSize: 10,
+            fontWeight: 700
+          }
+        }, activeCount))), expanded && /*#__PURE__*/React.createElement("div", {
+          style: {
+            marginTop: 12,
+            paddingTop: 12,
+            borderTop: "1px solid #F4F4F5",
+            display: "grid",
+            gridTemplateColumns: "repeat(4, 1fr)",
+            gap: 10
+          }
+        }, /*#__PURE__*/React.createElement(FilterField, {
+          label: "Estatus"
+        }, /*#__PURE__*/React.createElement("select", {
+          value: filters.estatus,
+          onChange: e => set("estatus", e.target.value),
+          style: selectStyle
+        }, /*#__PURE__*/React.createElement("option", {
+          value: "todos"
+        }, "Todos"), Object.entries(estados).map(([k, s]) => /*#__PURE__*/React.createElement("option", {
+          key: k,
+          value: k
+        }, s.label)))), view === "cargos" && /*#__PURE__*/React.createElement(FilterField, {
+          label: "Categor\xEDa"
+        }, /*#__PURE__*/React.createElement("select", {
+          value: filters.categoria,
+          onChange: e => set("categoria", e.target.value),
+          style: selectStyle
+        }, /*#__PURE__*/React.createElement("option", {
+          value: "todas"
+        }, "Todas"), conceptos.map(c => /*#__PURE__*/React.createElement("option", {
+          key: c,
+          value: c
+        }, c)))), /*#__PURE__*/React.createElement(FilterField, {
+          label: "Inquilino"
+        }, /*#__PURE__*/React.createElement("select", {
+          value: filters.inquilino,
+          onChange: e => set("inquilino", e.target.value),
+          style: selectStyle
+        }, /*#__PURE__*/React.createElement("option", {
+          value: "todos"
+        }, "Todos"), tenants.map(t => /*#__PURE__*/React.createElement("option", {
+          key: t.id,
+          value: t.id
+        }, t.name)))), view === "cargos" && /*#__PURE__*/React.createElement(FilterField, {
+          label: "Espacio / Activo"
+        }, /*#__PURE__*/React.createElement("select", {
+          value: filters.espacio,
+          onChange: e => set("espacio", e.target.value),
+          style: selectStyle
+        }, /*#__PURE__*/React.createElement("option", {
+          value: "todos"
+        }, "Todos"), espacios.map(e => /*#__PURE__*/React.createElement("option", {
+          key: e,
+          value: e
+        }, e)))), view === "ventas" && /*#__PURE__*/React.createElement(FilterField, {
+          label: "Tipo de reporte"
+        }, /*#__PURE__*/React.createElement("select", {
+          value: filters.tipoReporte,
+          onChange: e => set("tipoReporte", e.target.value),
+          style: selectStyle
+        }, /*#__PURE__*/React.createElement("option", {
+          value: "todos"
+        }, "Todos"), /*#__PURE__*/React.createElement("option", {
+          value: "regular"
+        }, "Regular"), /*#__PURE__*/React.createElement("option", {
+          value: "on_demand"
+        }, "On-demand"), /*#__PURE__*/React.createElement("option", {
+          value: "audit"
+        }, "Auditor\xEDa"))), /*#__PURE__*/React.createElement("div", {
+          style: {
+            gridColumn: "1 / -1",
+            display: "flex",
+            justifyContent: "flex-end",
+            gap: 8,
+            marginTop: 6
+          }
+        }, /*#__PURE__*/React.createElement("button", {
+          onClick: () => setFilters({
+            ...filters,
+            estatus: "todos",
+            categoria: "todas",
+            inquilino: "todos",
+            espacio: "todos",
+            tipoReporte: "todos",
+            search: ""
+          }),
+          style: subtleBtn
+        }, "Limpiar filtros"), /*#__PURE__*/React.createElement("button", {
+          style: primaryBtn
+        }, "Guardar vista"))));
+      }
+      function FilterField({
+        label,
+        children
+      }) {
+        return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
+          style: {
+            display: "block",
+            fontSize: 10,
+            color: "#6B6B6F",
+            fontWeight: 600,
+            textTransform: "uppercase",
+            letterSpacing: ".4px",
+            marginBottom: 4
+          }
+        }, label), children);
+      }
+      function Select({
+        label,
+        value,
+        onChange,
+        options
+      }) {
+        return /*#__PURE__*/React.createElement("div", {
+          style: {
+            display: "flex",
+            alignItems: "center",
+            gap: 4
+          }
+        }, label && /*#__PURE__*/React.createElement("span", {
+          style: {
+            fontSize: 12,
+            color: "#6B6B6F"
+          }
+        }, label), /*#__PURE__*/React.createElement("select", {
+          value: value,
+          onChange: e => onChange(e.target.value),
+          style: selectStyle
+        }, options.map(o => /*#__PURE__*/React.createElement("option", {
+          key: o.v,
+          value: o.v
+        }, o.l))));
+      }
+      
+      // ════════════════════════════════════════════════════════════
+      // KPI CARD
+      // ════════════════════════════════════════════════════════════
+      function KpiCard({
+        label,
+        value,
+        sub,
+        icon,
+        color
+      }) {
+        return /*#__PURE__*/React.createElement("div", {
+          style: {
+            background: "white",
+            border: "1px solid #ECECEE",
+            borderRadius: 10,
+            padding: "16px 18px"
+          }
+        }, /*#__PURE__*/React.createElement("div", {
+          style: {
+            fontSize: 11,
+            color: "#6B6B6F",
+            marginBottom: 8
+          }
+        }, label), /*#__PURE__*/React.createElement("div", {
+          style: {
+            fontSize: 24,
+            fontWeight: 700,
+            color: color || "#111",
+            display: "flex",
+            alignItems: "baseline",
+            gap: 6,
+            lineHeight: 1
+          }
+        }, icon && /*#__PURE__*/React.createElement("span", {
+          style: {
+            fontSize: 14,
+            color
+          }
+        }, icon), value), /*#__PURE__*/React.createElement("div", {
+          style: {
+            fontSize: 10.5,
+            color: "#9CA3AF",
+            marginTop: 8
+          }
+        }, sub));
+      }
+      
+      // ════════════════════════════════════════════════════════════
+      // HELPERS DE ESTILO
+      // ════════════════════════════════════════════════════════════
+      function tenantColor(id) {
+        const colors = {
+          T1: "#6366F1",
+          T2: "#A78BFA",
+          T3: "#14B8A6",
+          T4: "#F59E0B",
+          T5: "#EC4899"
+        };
+        return colors[id] || "#9CA3AF";
+      }
+      const selectStyle = {
+        padding: "6px 24px 6px 10px",
+        border: "1px solid #E5E5E7",
+        borderRadius: 6,
+        fontSize: 12,
+        color: "#111",
+        fontFamily: "inherit",
+        background: "white",
+        appearance: "none",
+        backgroundImage: "url(\"data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='%236B6B6F' stroke-width='2'%3e%3cpath d='M6 9l6 6 6-6'/%3e%3c/svg%3e\")",
+        backgroundRepeat: "no-repeat",
+        backgroundPosition: "right 8px center",
+        outline: "none",
+        cursor: "pointer"
+      };
+      const primaryBtn = {
+        padding: "8px 14px",
+        background: "#2563EB",
+        color: "white",
+        border: "none",
+        borderRadius: 6,
+        fontSize: 12,
+        fontWeight: 600,
+        cursor: "pointer",
+        fontFamily: "inherit"
+      };
+      const subtleBtn = {
+        padding: "7px 14px",
+        border: "1px solid #E5E5E7",
+        borderRadius: 6,
+        background: "white",
+        color: "#6B6B6F",
+        fontSize: 12,
+        fontWeight: 500,
+        cursor: "pointer",
+        fontFamily: "inherit"
+      };
+      const iconBtn = {
+        width: 32,
+        height: 32,
+        background: "white",
+        border: "1px solid #E5E5E7",
+        borderRadius: 6,
+        fontSize: 14,
+        color: "#6B6B6F",
+        cursor: "pointer",
+        fontFamily: "inherit"
+      };
+      const menuItemStyle = {
+        width: "100%",
+        padding: "9px 14px",
+        background: "white",
+        border: "none",
+        textAlign: "left",
+        fontSize: 12,
+        color: "#111",
+        cursor: "pointer",
+        fontFamily: "inherit"
+      };
+      ReactDOM.createRoot(document.getElementById("root")).render(React.createElement(CobranzaDashboard));
+    }catch(e){document.getElementById("root").innerHTML='<div class="proto-err">Error al cargar el prototipo: '+e.message+'</div>';}
+  }
+  if(window.React&&window.ReactDOM){boot();}
+  else{var t=setInterval(function(){if(window.React&&window.ReactDOM){clearInterval(t);boot();}},50);
+  setTimeout(function(){if(!window.React){document.getElementById("root").innerHTML='<div class="proto-err">No se pudo cargar React.</div>';}},8000);}
+})();
+</script></body></html>
